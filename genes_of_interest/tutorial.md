@@ -11,7 +11,7 @@ Raw output looks like this:
 Above raw output is cleaned up and copied into a list, stored as a global var in the `run_kegg_api.py` script.
 
 ## Using API to extract genes of interest from KEGG
-Currently, all of the options are hard-coded into the `run_kegg_api.py` script, so running the script as is will do a search for Helianthus annuus genes which are associated with the 00900 pathways (terpenoid backbone synthesis) and write the information about these genes to the output file `terpenoid_synthesis__genes_of_interest_full.tsv`. To expand the list of candidate genes and investigate more pathways, the script should be modified to accept command-line arguments in a modular fashion.
+Running the script as is will do a search for Helianthus annuus genes which are associated with the 00900 pathways (terpenoid backbone synthesis) and write the information about these genes to the output file `terpenoid_synthesis__genes_of_interest_full.tsv`. The script has been modified to accept command-line arguments to allow for different searches, but this has not been extensively tested.
 
 To run the script, the user will need to have a python environment with pandas and requests. Then, can run with the following command:
 `python run_kegg_api.py`
