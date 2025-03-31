@@ -2,7 +2,7 @@
 # Change the path above later. Need python env with pandas and requests 
 
 # Jenna Stanislaw
-# March 18 2024
+# March 18 2025
 # Script to query the KEGG REST API 
 
 import requests
