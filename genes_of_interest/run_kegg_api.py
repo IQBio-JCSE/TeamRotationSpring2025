@@ -105,7 +105,7 @@ def parseargs():
                         default="path:han00900",
                         help='Term to search for in the target database')
     parser.add_argument('--outpath','-o',type=str,
-                        default='output.tsv', 
+                        default='./output_kegg_search/terpenoid_synthesis_genes/terpenoid_synthesis__genes_of_interest_full.tsv', 
                         help='Path to which the tsv with search output should be saved')
     
     args = parser.parse_args()

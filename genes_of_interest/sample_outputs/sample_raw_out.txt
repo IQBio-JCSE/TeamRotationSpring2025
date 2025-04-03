@@ -1,0 +1,120 @@
+ENTRY       110865220         CDS       T05101
+NAME        (RefSeq) phosphomevalonate kinase, peroxisomal
+ORTHOLOGY   K00938  phosphomevalonate kinase [EC:2.7.4.2]
+ORGANISM    han  Helianthus annuus (common sunflower)
+PATHWAY     han00900  Terpenoid backbone biosynthesis
+            han01100  Metabolic pathways
+            han01110  Biosynthesis of secondary metabolites
+MODULE      han_M00095  C5 isoprenoid biosynthesis, mevalonate pathway
+BRITE       KEGG Orthology (KO) [BR:han00001]
+             09100 Metabolism
+              09109 Metabolism of terpenoids and polyketides
+               00900 Terpenoid backbone biosynthesis
+                110865220
+            Enzymes [BR:han01000]
+             2. Transferases
+              2.7  Transferring phosphorus-containing groups
+               2.7.4  Phosphotransferases with a phosphate group as acceptor
+                2.7.4.2  phosphomevalonate kinase
+                 110865220
+POSITION    6:complement(37912475..37919447)
+MOTIF       Pfam: GHMP_kinases_N GHMP_kinases_C
+DBLINKS     NCBI-GeneID: 110865220
+            NCBI-ProteinID: XP_021970137
+AASEQ       489
+            MAVVASAPGKVLMTGGYLVLEKPNAGIVLSTNARFYAVLKPLYDEVVEVEWIDVKVNSPQ
+            MSRETAYKMSLKDFTLNCSSESRNPFVEYAVQYSVAAAYTTLDKIKRSKLQKLLSQGMDI
+            TILGCNDFYSYRSQIEARGLLLVPESLAALPPFTSITFNAGDSNGENCKPEVAKTGLGSS
+            AAMTTAVVAALLNYLGVVDLQCSGKDQKGENSSDLDLVHMIAQTTHCIAQGKVGSGFDVS
+            SAVYGSHRYVRFSPKIISAAQEAVCTTPLDEVIGEVLKAKWDHERTKFSLPPLMNLILGE
+            PGSGGSSTPSMVGAVKKWQKSDPEKSKETWDRLSEANSALEAHFNLLSKLAAENWDSYKS
+            VIDSCSMHKSEKWMGQFSEASHVEIVKALLGAREAMLKIRCHMRQMGEAAGIPIEPESQT
+            RLLDVTMDTEGVLLAGVPGAGGFDAVFAITLGDSTANLTKTWSSHNVLALLVREDPCGVS
+            LESGDPRAK
+NTSEQ       1470
+            atggctgtggttgcttctgctcctgggaaggtgttgatgactggtggttatttggttctc
+            gagaagccgaatgcgggaatcgtgcttagtacgaatgctcgattttacgctgttcttaag
+            cctctttatgatgaagttgtggaagtggagtggatagatgtgaaggtaaattctcctcag
+            atgtcgagagaaactgcatacaaaatgtccttaaaagatttcacacttaattgttcaagt
+            gaatcaaggaacccctttgttgaatatgcagtccaatattccgtagcagcagcatacacc
+            acactggacaaaattaaaaggagtaaactgcagaaattactgtcacagggtatggatatt
+            acaatcttaggttgcaatgacttctactcatatcggagtcagatcgaagcacgtgggctc
+            ctgttagtcccagaatcattggctgctcttccgccattcacatcgattacttttaacgct
+            ggagattcaaatggagaaaactgcaaaccagaagttgcgaaaactggattagggtcctct
+            gcagctatgacaactgctgtcgtagctgctttactaaactaccttggggttgttgatctt
+            caatgttccggtaaagatcaaaagggtgaaaacagttcggatcttgatttggtgcatatg
+            atagctcaaacgactcactgtattgctcaaggaaaagttggtagtggatttgatgttagt
+            tccgctgtctatggaagtcatcgttatgtccgtttttcaccaaaaatcatttctgcggct
+            caggaagctgtttgtaccacgccattagatgaagtcataggtgaagtcttgaaagccaag
+            tgggatcatgagaggactaaattttccttgccaccattaatgaatctgattttgggagaa
+            ccaggaagtggaggatcgtctacaccatcaatggttggtgcggtcaagaaatggcaaaaa
+            tctgacccagagaagtcaaaggagacatgggacaggttgtctgaggcaaattccgcactt
+            gaagcacattttaatttgttaagcaaactggctgcagaaaattgggattcatacaaatca
+            gtcatagacagctgtagcatgcataaatcagaaaagtggatggggcaatttagcgaagca
+            agtcatgtagaaattgttaaagcattattgggagctagagaggctatgcttaaaatccga
+            tgtcatatgaggcagatgggtgaggctgcaggcatcccgattgaacctgaatcacaaact
+            cgtctcctggatgtgaccatggacacagaaggtgtcttattggctggagttcctggtgcc
+            ggtgggtttgatgctgtattcgcgattactttaggtgactcaaccgccaatctaaccaaa
+            acatggagttcacacaatgttttggccttgctagtgagggaagatccctgtggcgtttct
+            ctagagagtggtgatcctcgggccaagtaa
+
+
+ENTRY       110867580         CDS       T05101
+NAME        (RefSeq) protein farnesyltransferase/geranylgeranyltransferase type-1 subunit alpha
+ORTHOLOGY   K05955  protein farnesyltransferase/geranylgeranyltransferase type-1 subunit alpha [EC:2.5.1.58 2.5.1.59]
+ORGANISM    han  Helianthus annuus (common sunflower)
+PATHWAY     han00900  Terpenoid backbone biosynthesis
+            han01110  Biosynthesis of secondary metabolites
+BRITE       KEGG Orthology (KO) [BR:han00001]
+             09100 Metabolism
+              09109 Metabolism of terpenoids and polyketides
+               00900 Terpenoid backbone biosynthesis
+                110867580
+             09180 Brite Hierarchies
+              09181 Protein families: metabolism
+               01006 Prenyltransferases [BR:han01006]
+                110867580
+            Enzymes [BR:han01000]
+             2. Transferases
+              2.5  Transferring alkyl or aryl groups, other than methyl groups
+               2.5.1  Transferring alkyl or aryl groups, other than methyl groups (only sub-subclass identified to date)
+                2.5.1.58  protein farnesyltransferase
+                 110867580
+                2.5.1.59  protein geranylgeranyltransferase type I
+                 110867580
+            Prenyltransferases [BR:han01006]
+             Protein prenylation
+              Farnesyltransferase/geranylgeranyltransferase 1
+               110867580
+POSITION    7:complement(2711272..2716630)
+MOTIF       Pfam: PPTA
+DBLINKS     NCBI-GeneID: 110867580
+            NCBI-ProteinID: XP_021972248
+AASEQ       366
+            MFRIRSKVKYKKTNKRRDSPPSAEIEMDSDEDVSTVLPLSQRPEWSDITPVPQNDGPNPV
+            VPIAYSEQFAETMSYFRAVYLADERSVRTLLLTAEAIHLNAGNYTVWQFRRVIIEALNAD
+            LHDEFDLVEQLASKNSKNYQLWHHRRWVAEKLGTEAVSRELEFTKKIFLNDAKHYHAWSH
+            RQWVLLNLGGWEDELAYCNELLEVDIFNNSAWNQRYFVITRHPKLGGIEATLDSEVDYTI
+            KAILTKPENESSWRYLRGLYKNNMQSFVTNPKIPTLCLDVLTSKVYPVFALSLLLDLISN
+            GFEPNQDLKNAVEAVVPESNSQGLDIAATICTVLEIIDRMRVNYWGWRKNNLRSQVAEGV
+            ANLSIH
+NTSEQ       1101
+            atgtttcgaataagatcgaaggtaaagtacaaaaaaacaaacaaacgcagagattcacca
+            ccgtcggcggaaatcgaaatggattccgatgaagatgtgagtacagtactacccctaagc
+            cagagaccggaatggtccgacataaccccggtgccccaaaacgacggccccaatcccgtc
+            gttccgattgcatactcggaacagttcgccgaaaccatgagttacttccgagccgtttat
+            ttagccgatgaacgatctgttcgaactcttcttcttaccgccgaagcaattcaccttaac
+            gccggaaattacactgtgtggcaattcagacgtgtaataattgaggctctgaatgccgat
+            ttacatgatgaattcgacttggttgaacagcttgctagcaaaaactcgaaaaactatcag
+            ctatggcaccataggaggtgggttgcggagaaactcgggacggaagctgttagtagagaa
+            cttgagttcaccaagaagatattcttaaacgatgctaaacattatcatgcttggtctcat
+            agacagtgggtgctcctaaatctcggaggatgggaagatgaacttgcttactgtaatgaa
+            ctcttggaagttgatatttttaacaactctgcttggaatcagagatactttgttataaca
+            agacacccgaaattaggtggtatagaggctacacttgattcagaagttgattacaccata
+            aaagccatcttaacgaaacccgaaaacgaaagctcgtggagataccttcgcggtctgtac
+            aaaaacaacatgcagtcattcgtaacaaatcctaagatcccaacgctttgtctggacgtg
+            ttgacttccaaagtctaccccgtgtttgcccttagtttactgttggatcttatctcaaac
+            ggtttcgaaccaaaccaagatctaaaaaacgccgttgaagcggtagttccagagtcaaac
+            agtcaaggtttagatattgcagcaacgatttgcacggttttagagatcatcgatcgaatg
+            agggtaaattattgggggtggagaaagaacaatcttcgttcgcaagttgccgagggagtt
+            gcaaacctcagtattcattga
