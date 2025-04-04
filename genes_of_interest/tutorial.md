@@ -1,7 +1,9 @@
 # Genes of interest from KEGG
+Goal: extract information about genes of interest from KEGG
+In the specific test case that is detailed in this example, we are looking for genes from _Helianthus annuus_ that are associates with terpenoid backbone synthesis. However, the scripts can be modified to search for genes associated with other pathways of interest (and likely for other organisms, although this has not been tested.)
 
 ## Retriving columns of interest from the data
-Need to define which columns to keep from the entry page for each gene of interest
+Before writing the search script, had to define which columns to keep from the entry page for each gene of interest. In the browser, each entry page for a gene has a table with information, which is converted into a full text format when a search for that gene (using its KEGG ID) is performed with the KEGG API. The rows in the table are the same for each gene, so we can look at the output from a sample search to determine which rows of the table are important to keep.
 To do this, first copied the output of `https://rest.kegg.jp/get/han:110865220+han:110867580` to a file called `sample_raw_out.txt`. Then, used the below command to extract the "column" names.  \
 ` awk -F'   ' '{print $1}' sample_raw_out.txt| sort |uniq | tr '\n' '_' | sed 's:_:\",\":g'`
 
