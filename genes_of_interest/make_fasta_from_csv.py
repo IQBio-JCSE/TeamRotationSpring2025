@@ -16,7 +16,8 @@ def main(infile, name_i, col_i, outfile):
     assert len(seqs) == len(names)
     f = open(outfile, "w")
     for i in range(len(names)):
-        f.write(f">{names[i]}\n")
+        name = "_".join(names[i].split()[1:])
+        f.write(f">{name}\n")
         f.write(seqs[i]+"\n")
     f.close()
     print(f"Fasta written to {outfile}")

@@ -65,6 +65,8 @@ def main(operation, target_database, search_term, outpath):
                         entry_d[curr_col+"_length"] = words[1]
                         entry_d[curr_col] = ""
                     else:
+                        if "ENTRY" in curr_col:
+                            entry_d["ID"] = words[1]
                         entry_d[curr_col] = ";".join(words[1:])
                 elif curr_col == "":
                     continue
@@ -105,7 +107,7 @@ def parseargs():
                         default="path:han00900",
                         help='Term to search for in the target database')
     parser.add_argument('--outpath','-o',type=str,
-                        default='./output_kegg_search/terpenoid_synthesis_genes/terpenoid_synthesis__genes_of_interest_full.tsv', 
+                        default='./output_kegg_search/terpenoid_synthesis_genes/terpenoid_synthesis__genes_of_interest.tsv', 
                         help='Path to which the tsv with search output should be saved')
     
     args = parser.parse_args()

@@ -18,11 +18,14 @@ Running the script as is will do a search for Helianthus annuus genes which are 
 To run the script, the user will need to have a python environment with pandas and requests. Then, can run with the following command:
 `python run_kegg_api.py`
 
-Note that if the user wants to run without specifiy which python to use, the first line of the file will need to be changed to the correcy python path
+Note that if the user wants to run without specifiy which python to use, the first line of the file will need to be changed to the correcy python path.
+
+### Update: April 4, 2025
+Script was modified to add an additional column to the tsv, titled "ID". This column contains the first value in the "ENTRY" column, and should correspond to the KEGG entry number. This number also appears to be the same as the NCBI-GeneID.  
 
 ## Preparing sequences for BLAST
 Following creation of the csv, if further steps need to be taken with the sequences saved in the csv, sequences can be extracted in fasta format using the `make_fasta_from_csv.py` script. The user can specify which column has sequence information, as well as which column should be used to extract identifiers (names) for the sequences. 
 For processing of terpenoid synthesis genes from the tsv above:
-`make_fasta_from_csv.py  -i ./output_kegg_search/terpenoid_synthesis_genes/terpenoid_synthesis__genes_of_interest.tsv -c 12 -n 1  -o ./output_kegg_search/terpenoid_synthesis_genes/fasta_terpenoid_synthesis_genes.fa`
+`make_fasta_from_csv.py  -i ./output_kegg_search/terpenoid_synthesis_genes/terpenoid_synthesis__genes_of_interest.tsv -c 13 -n 2  -o ./output_kegg_search/terpenoid_synthesis_genes/fasta_terpenoid_synthesis_genes.fa`
 
 This fasta file will become the inpout for the next steps, which are running a BLAST to align the genes of interest to an annotated reference genome.
