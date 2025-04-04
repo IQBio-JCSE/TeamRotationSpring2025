@@ -19,7 +19,7 @@ time_steps <- 0
 initialize_population <- function() {
   # Create wild population
   wild_population <- data.table(
-    trait = rnorm(num_wild_population, mean = 0.9, sd = 0.2),  # Gaussian distribution
+    trait = rnorm(num_wild_population, mean = 0.5, sd = 0.3),  # Gaussian distribution
     growth_rate = NA,
     reproduction_rate = NA,
     resistance = NA,
@@ -33,7 +33,7 @@ initialize_population <- function() {
 
   # Create domesticated population
   domesticated_population <- data.table(
-    trait = rnorm(num_domesticated_population, mean = 0.1, sd = 0.3),  # Narrow Gaussian distribution
+    trait = rnorm(num_domesticated_population, mean = 0.4, sd = 0.02),  # Narrow Gaussian distribution
     growth_rate = NA,
     reproduction_rate = NA,
     resistance = NA,
@@ -189,7 +189,7 @@ simulate <- function(time_steps, pest_pressure) {
 
 
 # Run simulation for single instance to test
-result_plot <- simulate(time_steps = 100, pest_pressure = 0.5)
+result_plot <- simulate(time_steps = 100, pest_pressure = 0.8)
 result_plot
 
 run_simulations_parallel <- function(num_simulations, time_steps, pest_pressure) {
