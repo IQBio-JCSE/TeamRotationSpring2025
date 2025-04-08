@@ -54,7 +54,7 @@ def process_entry_for_csv(entry_text):
                 entry_d[curr_col] = ""
             else:
                 if "ENTRY" in curr_col:
-                    entry_d["ID"] = words[1]
+                    entry_d["ID"] = "LOC"+words[1]
                 entry_d[curr_col] = ";".join(words[1:])
         elif curr_col == "":
             continue

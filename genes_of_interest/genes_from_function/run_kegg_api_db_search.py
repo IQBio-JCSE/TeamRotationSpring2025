@@ -40,7 +40,7 @@ def main(operation, target_database, search_term, outpath):
     # column from the output)
     response_data = response.text
     entry_id_list = [ row.split('\t')[-1] for row in response_data.split("\n")]
-    print(entry_id_list)
+    # print(entry_id_list)
 
     df = search_KEGG_entry_by_geneID(entry_id_list)
     
