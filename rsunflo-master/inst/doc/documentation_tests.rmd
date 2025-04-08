@@ -1,0 +1,112 @@
+
+```{r setup, message=FALSE}
+# packages
+library(readxl)
+library(lubridate)
+library(tidyverse)
+library(rvle)
+library(rsunflo)
+```
+
+
+## Experimental design
+
+```{r design_rsunflo}
+# import trials (n=2)
+trials <- read_xlsx("inst/doc/files/design.xlsx", sheet="trials")
+# import genotypes (n=3)
+genotypes <- read_xlsx("inst/doc/files/design.xlsx", sheet="genotype")
+
+# create a test full factorial design 
+design <- crossing(trial_id=trials$trial_id, genotype=genotypes$genotype)
+design <- design %>% left_join(trials) %>% left_join(genotypes)
+
+# format the design of experiment according to rsunflo specs
+duration_soil = days(5) # duration (d) for bare-soil simulation 
+
+design <- design %>%
+  mutate(
+    id = 1:n(),
+    begin = crop_sowing - duration_soil,
+    end = crop_harvest + duration_soil,
+    duration = as.numeric(end - begin),
+    file = paste("DB/files_test/",trial_id,".txt",sep="")
+  ) 
+
+# export design
+saveRDS(design, "inst/doc/files/design.rds")
+```
+
+
+## Simulation
+
+```{r simulation_rsunflo}
+# load experimental design (dataframe with inputs in columns, simulation in lines)
+design <- readRDS("inst/doc/files/design.rds")
+
+# define model and model call
+sunflo <- new("Rvle", file="sunflo_web.vpz", pkg="sunflo")
+run_sunflo <- function(id, design){design %>% play(unit=id) %>% shape(view="timed")}
+run_sunflo_safe <- possibly(run_sunflo, NULL)
+
+# run model with default parameterization
+sunflo %>% run() %>% results() %>% shape(view="timed")
+
+# run model for one simulation from design of experiments
+design %>% play(unit=1) %>% shape(view="timed")
+
+# default graphical visualization
+design %>% play(unit=1) %>% shape(view="timed") %>% display()
+
+# run model for multiple simulations (multicore enabled with require(doMC), ?mlply)
+list_simulation <- design %>% select(id) 
+output <- list_simulation %>% plyr::mlply(run_sunflo_safe, design)
+
+# get timed model outputs (1 id -> 1 dataframe)
+output_timed <- output %>% compact() %>% plyr::ldply(.id="id")
+
+# summarize timed model outputs (1 id -> 1 vector)
+output_indicators <- output %>% compact() %>% plyr::ldply(indicate, .id="id")
+```
+
+
+```{r simulation_test, eval=FALSE}
+# load model
+sunflo <- new("Rvle", file = "sunflo_web.vpz", pkg = "sunflo")
+
+# load reference simulation (SUNFLO v1.2, VLE 1.0.3)
+output_ref <- readRDS("inst/doc/files/output_ref.rds") %>%
+  rename(PET=ETP, ETPET=ETRETM) %>% 
+  gather(variable, value_ref, -time) 
+
+# run current model
+output_new <- sunflo %>% run() %>% results() %>% shape(view="timed") %>%
+  gather(variable, value_new, -time)
+
+# plot differences, test : identical(output_ref, output_new)
+plot_dynamics <- left_join(output_ref, output_new) %>% 
+  gather(version, value, -time, -variable) %>% 
+  ggplot(aes(time, value, color=version)) +
+  geom_line() +
+  facet_wrap(~ variable, scale="free")
+
+```
+
+
+## Analyse
+```{r analysis, eval=FALSE}
+# test model evaluation and visualization
+
+data_test <- data_frame(
+  model=c(rep(LETTERS[1:2],each=500)),
+  simulated=rnorm(1000),
+  observed=rnorm(1000)
+)
+
+data_test %>% group_by(model) %>% do(evaluate_error(.))
+
+data_test %>% evaluate_plot(~ model, color="model")
+
+data_test %>% evaluate_residuals(~ model, color="model")
+
+```
