@@ -1,0 +1,9 @@
+name: kegg_search
+channels:
+  - defaults
+dependencies:
+  - python==3.13.0
+  - anaconda::requests
+  - anaconda::pandas
+  - conda-forge::matplotlib
+  - conda-forge::matplotlib-venn
