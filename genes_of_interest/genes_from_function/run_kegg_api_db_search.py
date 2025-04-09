@@ -1,5 +1,5 @@
-#!/Users/jennastanislaw/miniconda/envs/REE_proj/bin/python
-# Change the path above later. Need python env with pandas and requests 
+#!/Users/jennastanislaw/miniconda/envs/kegg_search/bin/python
+# Change the path above as needed to match the location of your python in your environment
 
 # Jenna Stanislaw
 # March 18 2025
