@@ -20,6 +20,12 @@ To run the script, the user will need to have a python environment with pandas a
 
 Note that if the user wants to run without specifiy which python to use, the first line of the file will need to be changed to the correcy python path.
 
+
+## Including gene name from reference genome
+The KEGG identifier (in column "ID") may not align with the gene name used in the reference genome. To link the genes identified here with any alternative names in the reference genome, run the command below:
+`./add_XRQ_gene_name.py -w True`
+This will add a new column onto the previously generated csv, titled "gene". This is the gene name used in the XRQ Sunrise Reference genome. A csv with info from the XQR_SUNRISE reference genome is located at `preprocessing_ref_genome/HanXRQr2.0-SUNRISE_cds_gene_info.csv`. See the `preprocessing_ref_genome` directory for more details about how this was created. 
+
 ### Update: April 4, 2025
 Script was modified to add an additional column to the tsv, titled "ID". This column contains the first value in the "ENTRY" column, and should correspond to the KEGG entry number. This number also appears to be the same as the NCBI-GeneID. Note that the command for the next step has been update to reflect the shift in column indices.  
 

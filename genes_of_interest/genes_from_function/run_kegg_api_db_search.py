@@ -43,7 +43,7 @@ def main(operation, target_database, search_term, outpath):
     # print(entry_id_list)
 
     df = search_KEGG_entry_by_geneID(entry_id_list)
-    
+
     # Save as tsv
     df.to_csv(outpath,sep='\t')
 
