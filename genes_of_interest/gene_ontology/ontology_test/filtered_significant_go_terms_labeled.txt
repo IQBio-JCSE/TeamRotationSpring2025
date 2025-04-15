@@ -1,0 +1,105 @@
+GO_ID	Category	GO_Name
+GO:0000012	child	single strand break repair
+GO:0000302	child	response to reactive oxygen species
+GO:0000719	child	photoreactive repair
+GO:0000724	child	double-strand break repair via homologous recombination
+GO:0000725	child	recombinational repair
+GO:0000727	child	double-strand break repair via break-induced replication
+GO:0006281	child	DNA repair
+GO:0006284	child	base-excision repair
+GO:0006289	child	nucleotide-excision repair
+GO:0006298	child	mismatch repair
+GO:0006302	child	double-strand break repair
+GO:0006303	child	double-strand break repair via nonhomologous end joining
+GO:0006307	child	DNA alkylation repair
+GO:0006950	original	response to stress
+GO:0006952	child	defense response
+GO:0006970	child	response to osmotic stress
+GO:0006979	original	response to oxidative stress
+GO:0006995	child	cellular response to nitrogen starvation
+GO:0007094	child	mitotic spindle assembly checkpoint signaling
+GO:0007275	original	multicellular organism development
+GO:0007346	child	regulation of mitotic cell cycle
+GO:0007584	child	response to nutrient
+GO:0009267	child	cellular response to starvation
+GO:0009269	child	response to desiccation
+GO:0009408	child	response to heat
+GO:0009409	child	response to cold
+GO:0009414	child	response to water deprivation
+GO:0009415	child	response to water
+GO:0009416	child	response to light stimulus
+GO:0009584	child	detection of visible light
+GO:0009585	child	red, far-red light phototransduction
+GO:0009611	child	response to wounding
+GO:0009626	child	plant-type hypersensitive response
+GO:0009627	child	systemic acquired resistance
+GO:0009630	child	gravitropism
+GO:0009637	child	response to blue light
+GO:0009638	child	phototropism
+GO:0009639	child	response to red or far red light
+GO:0009640	child	photomorphogenesis
+GO:0009644	child	response to high light intensity
+GO:0009651	child	response to salt stress
+GO:0009652	child	thigmotropism
+GO:0009737	original	response to abscisic acid
+GO:0009785	child	blue light signaling pathway
+GO:0009793	child	embryo development ending in seed dormancy
+GO:0009809	child	lignin biosynthetic process
+GO:0009826	child	unidimensional cell growth
+GO:0009832	child	plant-type cell wall biogenesis
+GO:0009833	child	plant-type primary cell wall biogenesis
+GO:0009834	child	plant-type secondary cell wall biogenesis
+GO:0009860	child	pollen tube growth
+GO:0009959	child	negative gravitropism
+GO:0010048	child	vernalization response
+GO:0010114	child	response to red light
+GO:0010224	child	response to UV-B
+GO:0010345	child	suberin biosynthetic process
+GO:0010389	child	regulation of G2/M transition of mitotic cell cycle
+GO:0015976	child	carbon utilization
+GO:0015979	original	photosynthesis
+GO:0016036	child	cellular response to phosphate starvation
+GO:0019676	child	ammonia assimilation cycle
+GO:0019985	child	translesion synthesis
+GO:0030307	child	positive regulation of cell growth
+GO:0030639	child	polyketide biosynthetic process
+GO:0030968	child	endoplasmic reticulum unfolded protein response
+GO:0031848	child	protection from non-homologous end joining at telomere
+GO:0032465	child	regulation of cytokinesis
+GO:0033314	child	mitotic DNA replication checkpoint signaling
+GO:0033554	child	cellular response to stress
+GO:0034198	child	cellular response to amino acid starvation
+GO:0034599	child	cellular response to oxidative stress
+GO:0034605	child	cellular response to heat
+GO:0034620	child	cellular response to unfolded protein
+GO:0034976	child	response to endoplasmic reticulum stress
+GO:0036297	child	interstrand cross-link repair
+GO:0036498	child	IRE1-mediated unfolded protein response
+GO:0042542	child	response to hydrogen peroxide
+GO:0042546	original	cell wall biogenesis
+GO:0042594	child	response to starvation
+GO:0045003	child	double-strand break repair via synthesis-dependent strand annealing
+GO:0045087	child	innate immune response
+GO:0045736	child	negative regulation of cyclin-dependent protein serine/threonine kinase activity
+GO:0045842	child	positive regulation of mitotic metaphase/anaphase transition
+GO:0045930	child	negative regulation of mitotic cell cycle
+GO:0050826	child	response to freezing
+GO:0050832	child	defense response to fungus
+GO:0050982	child	detection of mechanical stimulus
+GO:0051211	child	anisotropic cell growth
+GO:0051513	child	regulation of monopolar cell growth
+GO:0051598	child	meiotic recombination checkpoint signaling
+GO:0051607	child	defense response to virus
+GO:0051726	original	regulation of cell cycle
+GO:0051983	child	regulation of chromosome segregation
+GO:0060236	child	regulation of mitotic spindle organization
+GO:0070059	child	intrinsic apoptotic signaling pathway in response to endoplasmic reticulum stress
+GO:0071218	child	cellular response to misfolded protein
+GO:0071482	child	cellular response to light stimulus
+GO:0071486	child	cellular response to high light intensity
+GO:0080167	child	response to karrikin
+GO:0080183	child	response to photooxidative stress
+GO:0090173	child	regulation of synaptonemal complex assembly
+GO:0098542	child	defense response to other organism
+GO:1990414	child	replication-born double-strand break repair via sister chromatid exchange
+GO:1990918	child	double-strand break repair involved in meiotic recombination
