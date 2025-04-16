@@ -1025,23 +1025,51 @@ display <- function(data, view="timed") {
   )
 }
 
-
-
-# packages
-library(tidyverse)s
-
-
-# Simulation
-
-# load design of experiments
-# design <- 
-
-# load the sunflo model
-
-# run the model with default parameterization 
-
-# run the model with parameters defined in the design of experiments
-
-# multi-simulation (4 core i7 : 71 ms/sim), for larger design, parallelization is possible with the *doMC* package
-
-# compute crop performance indicator (one experiment -> one vector)
+# Define the sunflo model
+sunflo_model <- function(design_row, climate_data) {
+  # Extract inputs from the design row
+  root_depth <- design_row$root_depth
+  stone_content <- design_row$stone_content
+  field_capacity_1 <- design_row$field_capacity_1
+  wilting_point_1 <- design_row$wilting_point_1
+  field_capacity_2 <- design_row$field_capacity_2
+  wilting_point_2 <- design_row$wilting_point_2
+  soil_density_1 <- design_row$soil_density_1
+  soil_density_2 <- design_row$soil_density_2
+  crop_sowing <- design_row$crop_sowing
+  crop_harvest <- design_row$crop_harvest
+  crop_density <- design_row$crop_density
+  HI <- design_row$HI  # Harvest Index
+  
+  # Compute soil water capacity
+  swc <- soil_water_capacity(
+    root_depth = root_depth,
+    stone_content = stone_content,
+    field_capacity_1 = field_capacity_1,
+    field_capacity_2 = field_capacity_2,
+    wilting_point_1 = wilting_point_1,
+    wilting_point_2 = wilting_point_2,
+    soil_density_1 = soil_density_1,
+    soil_density_2 = soil_density_2
+  )
+  
+  # Compute thermal time
+  thermal_sum <- thermal_time(
+    climate = climate_data,
+    id = design_row$id,
+    start = crop_sowing,
+    end = crop_harvest
+  )
+  
+  # Simulate crop yield
+  crop_biomass <- swc * thermal_sum * crop_density  # Simplified biomass calculation
+  crop_yield <- crop_biomass * HI  # Yield based on harvest index
+  
+  # Return results
+  return(list(
+    soil_water_capacity = swc,
+    thermal_time = thermal_sum,
+    crop_biomass = crop_biomass,
+    crop_yield = crop_yield
+  ))
+}

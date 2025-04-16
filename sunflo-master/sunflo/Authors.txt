@@ -1,0 +1,34 @@
+         sunfloV1 package development team
+         ===================================
+
+Copyright
+=========
+
+INRA :
+Copyright (C) 2009-2010 INRA
+French National Institute for Agricultural Research
+Institut National de la Recherche Agronomique
+http://www.inra.fr
+
+CETIOM :
+Copyright (C) 2009-2010 CETIOM
+Centre Technique Interprofessionnel des Oléagineux Métropolitains
+http://www.cetiom.fr
+
+
+Authors
+=======
+
+Le package sunfloV1 fait partie du logiciel sunfloV1 du modèle tournesol
+SUNFLO. Le logiciel sunfloV1 a été développé sous l'environnement de simulation
+et modélisation VLE (http://www.vle-project.org) par Nathalie Rousse (équipe
+RECORD http://record.toulouse.inra.fr, unité BIA, département MIA, INRA) pour
+l'Unité Mixte Technologique Tournesol représentée par Philippe Debaeke (Unité
+Mixte de Recherche AGIR, département EA, INRA) et Luc Champolivier (CETIOM). Ce
+logiciel est une réécriture du logiciel du modèle SUNFLO existant sous
+ModelMaker qui avait été conçu et réalisé par Pierre Casadebaig dans le cadre
+de sa thèse INRA-CETIOM. Il est conforme à la publication 
+Casadebaig, P., et al., SUNFLO, a model to simulate genotype-specific
+performance of the sunflower crop in contrasting environments. Agric. Forest
+Meteorol. (2010), doi:10.1016/j.agrformet.2010.09.012.
+

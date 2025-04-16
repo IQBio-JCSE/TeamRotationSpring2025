@@ -1,0 +1,1857 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<vle_project date="2014-Dec-17 17:32:19" author="Pierre Casadebaig" version="1.0">
+ <structures>
+<model type="coupled" x="0" y="0" name="sunflo" width="1610" height="1051">
+<submodels>
+<model type="atomic" x="82" y="295" observables="decision" name="itk" dynamics="decision" conditions="cBegin,itk" width="100" height="150">
+<out>
+ <port name="ActionFerti"/>
+ <port name="ActionIrrig"/>
+ <port name="ActionRecolte"/>
+ <port name="ActionSemis"/>
+ <port name="DoseFerti"/>
+ <port name="DoseIrrig"/>
+ <port name="densite"/>
+ <port name="zSemis"/>
+</out>
+</model>
+<model type="coupled" x="286" y="64" name="sunflo_bio" width="100" height="255">
+<in>
+ <port name="ActionFerti"/>
+ <port name="ActionIrrig"/>
+ <port name="ActionRecolte"/>
+ <port name="ActionSemis"/>
+ <port name="DoseFerti"/>
+ <port name="DoseIrrig"/>
+ <port name="ETPP"/>
+ <port name="Pluie"/>
+ <port name="RG"/>
+ <port name="Tmoy"/>
+ <port name="densite"/>
+ <port name="zSemis"/>
+<port name="Tx"/>
+     </in>
+<out>
+      <port name="ETMcumulDepuisLevee"/>
+      <port name="ETRETM"/>
+      <port name="ETRcumulDepuisLevee"/>
+      <port name="FHLE"/>
+      <port name="FHRUE"/>
+      <port name="FHTR"/>
+      <port name="FNIRUE"/>
+      <port name="FNLE"/>
+      <port name="IRs"/>
+      <port name="JSE"/>
+      <port name="JSF"/>
+      <port name="JSM"/>
+      <port name="LAI"/>
+      <port name="Nabs"/>
+     </out>
+<submodels>
+<model type="atomic" x="777" y="209" observables="croissance_plante" name="croissance_plante" dynamics="croissance_plante" conditions="CONFIG_Plante,CONFIG_Variete,croissance_plante,simulation_engine,EXPERT_Plante" width="100" height="225">
+<in>
+        <port name="ActionSemis"/>
+        <port name="FHLE"/>
+        <port name="FHRUE"/>
+        <port name="FLe"/>
+        <port name="FNIRUE"/>
+        <port name="FNLE"/>
+        <port name="FT"/>
+        <port name="PhasePhenoPlante"/>
+        <port name="RG"/>
+        <port name="TT_A2"/>
+        <port name="Teff"/>
+        <port name="densite"/>
+       </in>
+<out>
+ <port name="DBP"/>
+ <port name="Ebp"/>
+ <port name="Ei"/>
+ <port name="LAI"/>
+ <port name="SFp"/>
+ <port name="TDM"/>
+<port name="Eb"/>
+       </out>
+</model>
+<model type="atomic" x="633" y="124" observables="diagnostic" name="diagnostic" dynamics="diagnostic" conditions="CONFIG_Variete,CONFIG_SimuInit,diagnostic,CONFIG_Plante,EXPERT_Rendement,EXPERT_Plante" width="100" height="75">
+<in>
+        <port name="ETRETM"/>
+        <port name="TT_A2"/>
+       </in>
+<out>
+ <port name="ISH1"/>
+ <port name="ISH2"/>
+ <port name="ISH3"/>
+</out>
+</model>
+<model type="atomic" x="252" y="22" observables="phenologie" name="phenologie" dynamics="Phenologie" conditions="CONFIG_Variete,cBegin,CONFIG_SimuInit,itk,CONFIG_Plante,EXPERT_Plante,phenologie" width="100" height="105">
+<in>
+ <port name="ActionRecolte"/>
+ <port name="ActionSemis"/>
+ <port name="FHTR"/>
+ <port name="Teff"/>
+ <port name="zSemis"/>
+</in>
+<out>
+        <port name="PhasePhenoPlante"/>
+        <port name="TT_A2"/>
+        <port name="TT_F1"/>
+       </out>
+</model>
+<model type="atomic" x="115" y="248" observables="temperature_efficace" name="temperature_efficace" dynamics="TemperatureEfficace" conditions="temperature_efficace,CONFIG_Plante,EXPERT_Plante" width="100" height="45">
+<in>
+ <port name="Tmoy"/>
+</in>
+<out>
+ <port name="Teff"/>
+</out>
+</model>
+<model type="coupled" x="828" y="597" name="performances" width="100" height="195">
+<in>
+        <port name="ETRETM"/>
+        <port name="INN"/>
+        <port name="LAI"/>
+        <port name="vNabs"/>
+        <port name="PhasePhenoPlante"/>
+        <port name="TDM"/>
+        <port name="TRPF"/>
+        <port name="TT_F1"/>
+        <port name="iPAR"/>
+        <port name="Tx"/>
+        <port name="Eb"/>
+        <port name="FTSW"/>
+       </in>
+<out>
+        <port name="IRs"/>
+        <port name="JSE"/>
+        <port name="JSF"/>
+        <port name="JSM"/>
+        <port name="RDT"/>
+        <port name="TH"/>
+       </out>
+<submodels>
+<model type="atomic" x="360" y="245" observables="elaboration_qualite" name="elaboration_qualite" dynamics="elaboration_qualite" conditions="CONFIG_Variete,elaboration_qualite,itk" width="100" height="165">
+<in>
+          <port name="JSM"/>
+          <port name="LAI"/>
+          <port name="vNabs"/>
+          <port name="PhasePhenoPlante"/>
+          <port name="Tx"/>
+          <port name="iPAR"/>
+          <port name="INN"/>
+          <port name="FTSW"/>
+          <port name="Eb"/>
+         </in>
+<out>
+ <port name="TH"/>
+</out>
+</model>
+<model type="atomic" x="320" y="33" observables="elaboration_rendement" name="elaboration_rendement" dynamics="elaboration_rendement" conditions="CONFIG_Variete,elaboration_rendement,EXPERT_Rendement,EXPERT_Plante" width="100" height="135">
+<in>
+          <port name="ETRETM"/>
+          <port name="INN"/>
+          <port name="PhasePhenoPlante"/>
+          <port name="TDM"/>
+          <port name="TRPF"/>
+          <port name="TT_F1"/>
+         </in>
+<out>
+          <port name="IRs"/>
+          <port name="JSE"/>
+          <port name="JSF"/>
+          <port name="JSM"/>
+          <port name="RDT"/>
+         </out>
+</model>
+</submodels>
+<connections>
+        <connection type="input">
+         <origin model="performances" port="ETRETM"/>
+         <destination model="elaboration_rendement" port="ETRETM"/>
+        </connection>
+        <connection type="input">
+         <origin model="performances" port="INN"/>
+         <destination model="elaboration_rendement" port="INN"/>
+        </connection>
+        <connection type="input">
+         <origin model="performances" port="LAI"/>
+         <destination model="elaboration_qualite" port="LAI"/>
+        </connection>
+        <connection type="input">
+         <origin model="performances" port="vNabs"/>
+         <destination model="elaboration_qualite" port="vNabs"/>
+        </connection>
+        <connection type="input">
+         <origin model="performances" port="PhasePhenoPlante"/>
+         <destination model="elaboration_qualite" port="PhasePhenoPlante"/>
+        </connection>
+        <connection type="input">
+         <origin model="performances" port="PhasePhenoPlante"/>
+         <destination model="elaboration_rendement" port="PhasePhenoPlante"/>
+        </connection>
+        <connection type="input">
+         <origin model="performances" port="TDM"/>
+         <destination model="elaboration_rendement" port="TDM"/>
+        </connection>
+        <connection type="input">
+         <origin model="performances" port="TRPF"/>
+         <destination model="elaboration_rendement" port="TRPF"/>
+        </connection>
+        <connection type="input">
+         <origin model="performances" port="TT_F1"/>
+         <destination model="elaboration_rendement" port="TT_F1"/>
+        </connection>
+        <connection type="input">
+         <origin model="performances" port="iPAR"/>
+         <destination model="elaboration_qualite" port="iPAR"/>
+        </connection>
+        <connection type="internal">
+         <origin model="elaboration_rendement" port="JSM"/>
+         <destination model="elaboration_qualite" port="JSM"/>
+        </connection>
+        <connection type="input">
+         <origin model="performances" port="Tx"/>
+         <destination model="elaboration_qualite" port="Tx"/>
+        </connection>
+        <connection type="input">
+         <origin model="performances" port="INN"/>
+         <destination model="elaboration_qualite" port="INN"/>
+        </connection>
+        <connection type="input">
+         <origin model="performances" port="FTSW"/>
+         <destination model="elaboration_qualite" port="FTSW"/>
+        </connection>
+        <connection type="input">
+         <origin model="performances" port="Eb"/>
+         <destination model="elaboration_qualite" port="Eb"/>
+        </connection>
+       </connections>
+</model>
+<model type="coupled" x="372" y="577" name="contraintes" width="100" height="330">
+<in>
+        <port name="ActionFerti"/>
+        <port name="ActionIrrig"/>
+        <port name="ActionSemis"/>
+        <port name="DBP"/>
+        <port name="DoseFerti"/>
+        <port name="DoseIrrig"/>
+        <port name="ETPP"/>
+        <port name="Ebp"/>
+        <port name="Ei"/>
+        <port name="PhasePhenoPlante"/>
+        <port name="Pluie"/>
+        <port name="RG"/>
+        <port name="SFp"/>
+        <port name="TDM"/>
+        <port name="TT_A2"/>
+        <port name="Teff"/>
+        <port name="Tmoy"/>
+        <port name="densite"/>
+        <port name="zSemis"/>
+       </in>
+<out>
+ <port name="ETMcumulDepuisLevee"/>
+ <port name="ETRETM"/>
+ <port name="ETRcumulDepuisLevee"/>
+ <port name="FHLE"/>
+ <port name="FHRUE"/>
+ <port name="FHTR"/>
+ <port name="FLe"/>
+ <port name="FNIRUE"/>
+ <port name="FNLE"/>
+ <port name="FT"/>
+ <port name="INN"/>
+ <port name="Nabs"/>
+ <port name="PARi"/>
+ <port name="TRPF"/>
+ <port name="vMine"/>
+<port name="FTSW"/>
+        <port name="vNabs"/>
+       </out>
+<submodels>
+<model type="atomic" x="950" y="398" observables="contrainte_azote" name="contrainte_azote" dynamics="croissance_azote" conditions="CONFIG_Sol,CONFIG_SimuInit,contrainte_azote,CONFIG_Plante,EXPERT_Rendement,EXPERT_Plante" width="100" height="480">
+<in>
+          <port name="ActionFerti"/>
+          <port name="ActionIrrig"/>
+          <port name="D1"/>
+          <port name="D2"/>
+          <port name="D3"/>
+          <port name="DBP"/>
+          <port name="DoseFerti"/>
+          <port name="DoseIrrig"/>
+          <port name="Ebp"/>
+          <port name="Ei"/>
+          <port name="FHRUE"/>
+          <port name="FT"/>
+          <port name="FTHN"/>
+          <port name="PhasePhenoPlante"/>
+          <port name="Pluie"/>
+          <port name="RG"/>
+          <port name="RWCC1"/>
+          <port name="STOCKC1"/>
+          <port name="STOCKC2"/>
+          <port name="STOCKC3"/>
+          <port name="TDM"/>
+          <port name="Teff"/>
+          <port name="Tmoy"/>
+          <port name="vRac"/>
+          <port name="vTRC1"/>
+          <port name="vTRC2"/>
+          <port name="zC2"/>
+          <port name="zC3"/>
+          <port name="zRac"/>
+         </in>
+<out>
+ <port name="FNIRUE"/>
+ <port name="FNLE"/>
+ <port name="INN"/>
+ <port name="Nabs"/>
+ <port name="vMine"/>
+<port name="vNabs"/>
+         </out>
+</model>
+<model type="atomic" x="485" y="721" observables="contrainte_eau" name="contrainte_eau" dynamics="contrainte_eau" conditions="CONFIG_Variete,CONFIG_Sol,contrainte_eau,CONFIG_SimuInit,CONFIG_Plante,EXPERT_Rendement,EXPERT_Plante" width="100" height="330">
+<in>
+          <port name="ActionIrrig"/>
+          <port name="ActionSemis"/>
+          <port name="DoseIrrig"/>
+          <port name="ETPP"/>
+          <port name="Ei"/>
+          <port name="PhasePhenoPlante"/>
+          <port name="Pluie"/>
+          <port name="Tmoy"/>
+          <port name="zSemis"/>
+         </in>
+<out>
+ <port name="D1"/>
+ <port name="D2"/>
+ <port name="D3"/>
+ <port name="ETMcumulDepuisLevee"/>
+ <port name="ETRETM"/>
+ <port name="ETRcumulDepuisLevee"/>
+ <port name="FHLE"/>
+ <port name="FHRUE"/>
+ <port name="FHTR"/>
+ <port name="RWCC1"/>
+ <port name="STOCKC1"/>
+ <port name="STOCKC2"/>
+ <port name="STOCKC3"/>
+ <port name="TRPF"/>
+ <port name="vRac"/>
+ <port name="vTRC1"/>
+ <port name="vTRC2"/>
+ <port name="zC2"/>
+ <port name="zC3"/>
+ <port name="zRac"/>
+<port name="FTSW"/>
+         </out>
+</model>
+<model type="atomic" x="335" y="61" observables="contrainte_lumiere" name="contrainte_lumiere" dynamics="contrainte_lumiere" conditions="contrainte_lumiere" width="100" height="135">
+<in>
+ <port name="ActionSemis"/>
+ <port name="Ei"/>
+ <port name="PhasePhenoPlante"/>
+ <port name="RG"/>
+ <port name="SFp"/>
+ <port name="TT_A2"/>
+ <port name="densite"/>
+</in>
+<out>
+ <port name="FLe"/>
+ <port name="iPAR"/>
+</out>
+</model>
+<model type="atomic" x="282" y="370" observables="contrainte_temperature" name="contrainte_temperature" dynamics="contrainte_temperature" conditions="CONFIG_Plante,contrainte_temperature,EXPERT_Plante" width="100" height="60">
+<in>
+ <port name="PhasePhenoPlante"/>
+ <port name="Tmoy"/>
+</in>
+<out>
+ <port name="FT"/>
+ <port name="FTHN"/>
+</out>
+</model>
+</submodels>
+<connections>
+        <connection type="output">
+         <origin model="contrainte_eau" port="ETMcumulDepuisLevee"/>
+         <destination model="contraintes" port="ETMcumulDepuisLevee"/>
+        </connection>
+        <connection type="output">
+         <origin model="contrainte_eau" port="ETRETM"/>
+         <destination model="contraintes" port="ETRETM"/>
+        </connection>
+        <connection type="output">
+         <origin model="contrainte_eau" port="ETRcumulDepuisLevee"/>
+         <destination model="contraintes" port="ETRcumulDepuisLevee"/>
+        </connection>
+        <connection type="output">
+         <origin model="contrainte_eau" port="FHLE"/>
+         <destination model="contraintes" port="FHLE"/>
+        </connection>
+        <connection type="output">
+         <origin model="contrainte_eau" port="FHRUE"/>
+         <destination model="contraintes" port="FHRUE"/>
+        </connection>
+        <connection type="output">
+         <origin model="contrainte_eau" port="FHTR"/>
+         <destination model="contraintes" port="FHTR"/>
+        </connection>
+        <connection type="output">
+         <origin model="contrainte_lumiere" port="FLe"/>
+         <destination model="contraintes" port="FLe"/>
+        </connection>
+        <connection type="output">
+         <origin model="contrainte_azote" port="FNIRUE"/>
+         <destination model="contraintes" port="FNIRUE"/>
+        </connection>
+        <connection type="output">
+         <origin model="contrainte_azote" port="FNLE"/>
+         <destination model="contraintes" port="FNLE"/>
+        </connection>
+        <connection type="output">
+         <origin model="contrainte_temperature" port="FT"/>
+         <destination model="contraintes" port="FT"/>
+        </connection>
+        <connection type="output">
+         <origin model="contrainte_azote" port="INN"/>
+         <destination model="contraintes" port="INN"/>
+        </connection>
+        <connection type="output">
+         <origin model="contrainte_azote" port="Nabs"/>
+         <destination model="contraintes" port="Nabs"/>
+        </connection>
+        <connection type="output">
+         <origin model="contrainte_lumiere" port="iPAR"/>
+         <destination model="contraintes" port="PARi"/>
+        </connection>
+        <connection type="output">
+         <origin model="contrainte_eau" port="TRPF"/>
+         <destination model="contraintes" port="TRPF"/>
+        </connection>
+        <connection type="output">
+         <origin model="contrainte_azote" port="vMine"/>
+         <destination model="contraintes" port="vMine"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="ActionFerti"/>
+         <destination model="contrainte_azote" port="ActionFerti"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="ActionIrrig"/>
+         <destination model="contrainte_azote" port="ActionIrrig"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="ActionIrrig"/>
+         <destination model="contrainte_eau" port="ActionIrrig"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="ActionSemis"/>
+         <destination model="contrainte_eau" port="ActionSemis"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="ActionSemis"/>
+         <destination model="contrainte_lumiere" port="ActionSemis"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="DBP"/>
+         <destination model="contrainte_azote" port="DBP"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="DoseFerti"/>
+         <destination model="contrainte_azote" port="DoseFerti"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="DoseIrrig"/>
+         <destination model="contrainte_azote" port="DoseIrrig"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="DoseIrrig"/>
+         <destination model="contrainte_eau" port="DoseIrrig"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="ETPP"/>
+         <destination model="contrainte_eau" port="ETPP"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="Ebp"/>
+         <destination model="contrainte_azote" port="Ebp"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="Ei"/>
+         <destination model="contrainte_azote" port="Ei"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="Ei"/>
+         <destination model="contrainte_eau" port="Ei"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="Ei"/>
+         <destination model="contrainte_lumiere" port="Ei"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="PhasePhenoPlante"/>
+         <destination model="contrainte_azote" port="PhasePhenoPlante"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="PhasePhenoPlante"/>
+         <destination model="contrainte_temperature" port="PhasePhenoPlante"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="PhasePhenoPlante"/>
+         <destination model="contrainte_eau" port="PhasePhenoPlante"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="PhasePhenoPlante"/>
+         <destination model="contrainte_lumiere" port="PhasePhenoPlante"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="Pluie"/>
+         <destination model="contrainte_azote" port="Pluie"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="Pluie"/>
+         <destination model="contrainte_eau" port="Pluie"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="RG"/>
+         <destination model="contrainte_azote" port="RG"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="RG"/>
+         <destination model="contrainte_lumiere" port="RG"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="SFp"/>
+         <destination model="contrainte_lumiere" port="SFp"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="TDM"/>
+         <destination model="contrainte_azote" port="TDM"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="TT_A2"/>
+         <destination model="contrainte_lumiere" port="TT_A2"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="Teff"/>
+         <destination model="contrainte_azote" port="Teff"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="Tmoy"/>
+         <destination model="contrainte_azote" port="Tmoy"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="Tmoy"/>
+         <destination model="contrainte_temperature" port="Tmoy"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="Tmoy"/>
+         <destination model="contrainte_eau" port="Tmoy"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="densite"/>
+         <destination model="contrainte_lumiere" port="densite"/>
+        </connection>
+        <connection type="input">
+         <origin model="contraintes" port="zSemis"/>
+         <destination model="contrainte_eau" port="zSemis"/>
+        </connection>
+        <connection type="internal">
+         <origin model="contrainte_eau" port="D1"/>
+         <destination model="contrainte_azote" port="D1"/>
+        </connection>
+        <connection type="internal">
+         <origin model="contrainte_eau" port="D2"/>
+         <destination model="contrainte_azote" port="D2"/>
+        </connection>
+        <connection type="internal">
+         <origin model="contrainte_eau" port="D3"/>
+         <destination model="contrainte_azote" port="D3"/>
+        </connection>
+        <connection type="internal">
+         <origin model="contrainte_eau" port="FHRUE"/>
+         <destination model="contrainte_azote" port="FHRUE"/>
+        </connection>
+        <connection type="internal">
+         <origin model="contrainte_eau" port="RWCC1"/>
+         <destination model="contrainte_azote" port="RWCC1"/>
+        </connection>
+        <connection type="internal">
+         <origin model="contrainte_eau" port="STOCKC1"/>
+         <destination model="contrainte_azote" port="STOCKC1"/>
+        </connection>
+        <connection type="internal">
+         <origin model="contrainte_eau" port="STOCKC2"/>
+         <destination model="contrainte_azote" port="STOCKC2"/>
+        </connection>
+        <connection type="internal">
+         <origin model="contrainte_eau" port="STOCKC3"/>
+         <destination model="contrainte_azote" port="STOCKC3"/>
+        </connection>
+        <connection type="internal">
+         <origin model="contrainte_eau" port="vRac"/>
+         <destination model="contrainte_azote" port="vRac"/>
+        </connection>
+        <connection type="internal">
+         <origin model="contrainte_eau" port="vTRC1"/>
+         <destination model="contrainte_azote" port="vTRC1"/>
+        </connection>
+        <connection type="internal">
+         <origin model="contrainte_eau" port="vTRC2"/>
+         <destination model="contrainte_azote" port="vTRC2"/>
+        </connection>
+        <connection type="internal">
+         <origin model="contrainte_eau" port="zC2"/>
+         <destination model="contrainte_azote" port="zC2"/>
+        </connection>
+        <connection type="internal">
+         <origin model="contrainte_eau" port="zC3"/>
+         <destination model="contrainte_azote" port="zC3"/>
+        </connection>
+        <connection type="internal">
+         <origin model="contrainte_eau" port="zRac"/>
+         <destination model="contrainte_azote" port="zRac"/>
+        </connection>
+        <connection type="internal">
+         <origin model="contrainte_temperature" port="FT"/>
+         <destination model="contrainte_azote" port="FT"/>
+        </connection>
+        <connection type="internal">
+         <origin model="contrainte_temperature" port="FTHN"/>
+         <destination model="contrainte_azote" port="FTHN"/>
+        </connection>
+        <connection type="output">
+         <origin model="contrainte_eau" port="FTSW"/>
+         <destination model="contraintes" port="FTSW"/>
+        </connection>
+        <connection type="output">
+         <origin model="contrainte_azote" port="vNabs"/>
+         <destination model="contraintes" port="vNabs"/>
+        </connection>
+       </connections>
+</model>
+</submodels>
+<connections>
+      <connection type="input">
+       <origin model="sunflo_bio" port="ActionFerti"/>
+       <destination model="contraintes" port="ActionFerti"/>
+      </connection>
+      <connection type="input">
+       <origin model="sunflo_bio" port="ActionIrrig"/>
+       <destination model="contraintes" port="ActionIrrig"/>
+      </connection>
+      <connection type="input">
+       <origin model="sunflo_bio" port="ActionRecolte"/>
+       <destination model="phenologie" port="ActionRecolte"/>
+      </connection>
+      <connection type="input">
+       <origin model="sunflo_bio" port="ActionSemis"/>
+       <destination model="phenologie" port="ActionSemis"/>
+      </connection>
+      <connection type="input">
+       <origin model="sunflo_bio" port="ActionSemis"/>
+       <destination model="croissance_plante" port="ActionSemis"/>
+      </connection>
+      <connection type="input">
+       <origin model="sunflo_bio" port="ActionSemis"/>
+       <destination model="contraintes" port="ActionSemis"/>
+      </connection>
+      <connection type="input">
+       <origin model="sunflo_bio" port="DoseFerti"/>
+       <destination model="contraintes" port="DoseFerti"/>
+      </connection>
+      <connection type="input">
+       <origin model="sunflo_bio" port="DoseIrrig"/>
+       <destination model="contraintes" port="DoseIrrig"/>
+      </connection>
+      <connection type="input">
+       <origin model="sunflo_bio" port="ETPP"/>
+       <destination model="contraintes" port="ETPP"/>
+      </connection>
+      <connection type="input">
+       <origin model="sunflo_bio" port="Pluie"/>
+       <destination model="contraintes" port="Pluie"/>
+      </connection>
+      <connection type="input">
+       <origin model="sunflo_bio" port="RG"/>
+       <destination model="croissance_plante" port="RG"/>
+      </connection>
+      <connection type="input">
+       <origin model="sunflo_bio" port="RG"/>
+       <destination model="contraintes" port="RG"/>
+      </connection>
+      <connection type="input">
+       <origin model="sunflo_bio" port="Tmoy"/>
+       <destination model="temperature_efficace" port="Tmoy"/>
+      </connection>
+      <connection type="input">
+       <origin model="sunflo_bio" port="Tmoy"/>
+       <destination model="contraintes" port="Tmoy"/>
+      </connection>
+      <connection type="input">
+       <origin model="sunflo_bio" port="densite"/>
+       <destination model="croissance_plante" port="densite"/>
+      </connection>
+      <connection type="input">
+       <origin model="sunflo_bio" port="densite"/>
+       <destination model="contraintes" port="densite"/>
+      </connection>
+      <connection type="input">
+       <origin model="sunflo_bio" port="zSemis"/>
+       <destination model="phenologie" port="zSemis"/>
+      </connection>
+      <connection type="input">
+       <origin model="sunflo_bio" port="zSemis"/>
+       <destination model="contraintes" port="zSemis"/>
+      </connection>
+      <connection type="internal">
+       <origin model="contraintes" port="ETRETM"/>
+       <destination model="diagnostic" port="ETRETM"/>
+      </connection>
+      <connection type="internal">
+       <origin model="contraintes" port="ETRETM"/>
+       <destination model="performances" port="ETRETM"/>
+      </connection>
+      <connection type="internal">
+       <origin model="contraintes" port="FHLE"/>
+       <destination model="croissance_plante" port="FHLE"/>
+      </connection>
+      <connection type="internal">
+       <origin model="contraintes" port="FHRUE"/>
+       <destination model="croissance_plante" port="FHRUE"/>
+      </connection>
+      <connection type="internal">
+       <origin model="contraintes" port="FHTR"/>
+       <destination model="phenologie" port="FHTR"/>
+      </connection>
+      <connection type="internal">
+       <origin model="contraintes" port="FLe"/>
+       <destination model="croissance_plante" port="FLe"/>
+      </connection>
+      <connection type="internal">
+       <origin model="contraintes" port="FNIRUE"/>
+       <destination model="croissance_plante" port="FNIRUE"/>
+      </connection>
+      <connection type="internal">
+       <origin model="contraintes" port="FNLE"/>
+       <destination model="croissance_plante" port="FNLE"/>
+      </connection>
+      <connection type="internal">
+       <origin model="contraintes" port="FT"/>
+       <destination model="croissance_plante" port="FT"/>
+      </connection>
+      <connection type="internal">
+       <origin model="contraintes" port="INN"/>
+       <destination model="performances" port="INN"/>
+      </connection>
+      <connection type="internal">
+       <origin model="contraintes" port="PARi"/>
+       <destination model="performances" port="iPAR"/>
+      </connection>
+      <connection type="internal">
+       <origin model="contraintes" port="TRPF"/>
+       <destination model="performances" port="TRPF"/>
+      </connection>
+      <connection type="internal">
+       <origin model="croissance_plante" port="Ebp"/>
+       <destination model="contraintes" port="Ebp"/>
+      </connection>
+      <connection type="internal">
+       <origin model="croissance_plante" port="Ei"/>
+       <destination model="contraintes" port="Ei"/>
+      </connection>
+      <connection type="internal">
+       <origin model="croissance_plante" port="LAI"/>
+       <destination model="performances" port="LAI"/>
+      </connection>
+      <connection type="internal">
+       <origin model="croissance_plante" port="SFp"/>
+       <destination model="contraintes" port="SFp"/>
+      </connection>
+      <connection type="internal">
+       <origin model="croissance_plante" port="TDM"/>
+       <destination model="performances" port="TDM"/>
+      </connection>
+      <connection type="internal">
+       <origin model="croissance_plante" port="TDM"/>
+       <destination model="contraintes" port="TDM"/>
+      </connection>
+      <connection type="internal">
+       <origin model="phenologie" port="PhasePhenoPlante"/>
+       <destination model="croissance_plante" port="PhasePhenoPlante"/>
+      </connection>
+      <connection type="internal">
+       <origin model="phenologie" port="PhasePhenoPlante"/>
+       <destination model="performances" port="PhasePhenoPlante"/>
+      </connection>
+      <connection type="internal">
+       <origin model="phenologie" port="PhasePhenoPlante"/>
+       <destination model="contraintes" port="PhasePhenoPlante"/>
+      </connection>
+      <connection type="internal">
+       <origin model="phenologie" port="TT_A2"/>
+       <destination model="diagnostic" port="TT_A2"/>
+      </connection>
+      <connection type="internal">
+       <origin model="phenologie" port="TT_A2"/>
+       <destination model="croissance_plante" port="TT_A2"/>
+      </connection>
+      <connection type="internal">
+       <origin model="phenologie" port="TT_A2"/>
+       <destination model="contraintes" port="TT_A2"/>
+      </connection>
+      <connection type="internal">
+       <origin model="phenologie" port="TT_F1"/>
+       <destination model="performances" port="TT_F1"/>
+      </connection>
+      <connection type="internal">
+       <origin model="temperature_efficace" port="Teff"/>
+       <destination model="phenologie" port="Teff"/>
+      </connection>
+      <connection type="internal">
+       <origin model="temperature_efficace" port="Teff"/>
+       <destination model="croissance_plante" port="Teff"/>
+      </connection>
+      <connection type="internal">
+       <origin model="temperature_efficace" port="Teff"/>
+       <destination model="contraintes" port="Teff"/>
+      </connection>
+      <connection type="internal">
+       <origin model="croissance_plante" port="Eb"/>
+       <destination model="performances" port="Eb"/>
+      </connection>
+      <connection type="internal">
+       <origin model="contraintes" port="FTSW"/>
+       <destination model="performances" port="FTSW"/>
+      </connection>
+      <connection type="input">
+       <origin model="sunflo_bio" port="Tx"/>
+       <destination model="performances" port="Tx"/>
+      </connection>
+      <connection type="internal">
+       <origin model="contraintes" port="vNabs"/>
+       <destination model="performances" port="vNabs"/>
+      </connection>
+     </connections>
+</model>
+<model type="coupled" x="19" y="43" name="climat" width="100" height="120">
+<out>
+ <port name="ETPP"/>
+ <port name="Pluie"/>
+ <port name="RG"/>
+ <port name="Tmoy"/>
+ <port name="Tn"/>
+ <port name="Tx"/>
+</out>
+<submodels>
+<model type="atomic" x="284" y="187" name="GenericMean" dynamics="GenericMean" width="100" height="60">
+<in>
+ <port name="Tmax"/>
+ <port name="Tmin"/>
+</in>
+<out>
+ <port name="Mean"/>
+</out>
+</model>
+<model type="atomic" x="62" y="38" observables="lecture_climat" name="lecture_climat" dynamics="MeteoReader" conditions="cBegin,sunflo_climat" width="100" height="105">
+<out>
+ <port name="ETP"/>
+ <port name="Pluie"/>
+ <port name="RAD"/>
+ <port name="Tmax"/>
+ <port name="Tmin"/>
+</out>
+</model>
+</submodels>
+<connections>
+<connection type="output">
+ <origin model="lecture_climat" port="ETP"/>
+ <destination model="climat" port="ETPP"/>
+</connection>
+<connection type="output">
+ <origin model="lecture_climat" port="Pluie"/>
+ <destination model="climat" port="Pluie"/>
+</connection>
+<connection type="output">
+ <origin model="lecture_climat" port="RAD"/>
+ <destination model="climat" port="RG"/>
+</connection>
+<connection type="output">
+ <origin model="GenericMean" port="Mean"/>
+ <destination model="climat" port="Tmoy"/>
+</connection>
+<connection type="output">
+ <origin model="lecture_climat" port="Tmin"/>
+ <destination model="climat" port="Tn"/>
+</connection>
+<connection type="output">
+ <origin model="lecture_climat" port="Tmax"/>
+ <destination model="climat" port="Tx"/>
+</connection>
+<connection type="internal">
+ <origin model="lecture_climat" port="Tmax"/>
+ <destination model="GenericMean" port="Tmax"/>
+</connection>
+<connection type="internal">
+ <origin model="lecture_climat" port="Tmin"/>
+ <destination model="GenericMean" port="Tmin"/>
+</connection>
+</connections>
+</model>
+</submodels>
+<connections>
+<connection type="internal">
+ <origin model="climat" port="ETPP"/>
+ <destination model="sunflo_bio" port="ETPP"/>
+</connection>
+<connection type="internal">
+ <origin model="climat" port="Pluie"/>
+ <destination model="sunflo_bio" port="Pluie"/>
+</connection>
+<connection type="internal">
+ <origin model="climat" port="RG"/>
+ <destination model="sunflo_bio" port="RG"/>
+</connection>
+<connection type="internal">
+ <origin model="climat" port="Tmoy"/>
+ <destination model="sunflo_bio" port="Tmoy"/>
+</connection>
+<connection type="internal">
+ <origin model="itk" port="ActionFerti"/>
+ <destination model="sunflo_bio" port="ActionFerti"/>
+</connection>
+<connection type="internal">
+ <origin model="itk" port="ActionIrrig"/>
+ <destination model="sunflo_bio" port="ActionIrrig"/>
+</connection>
+<connection type="internal">
+ <origin model="itk" port="ActionRecolte"/>
+ <destination model="sunflo_bio" port="ActionRecolte"/>
+</connection>
+<connection type="internal">
+ <origin model="itk" port="ActionSemis"/>
+ <destination model="sunflo_bio" port="ActionSemis"/>
+</connection>
+<connection type="internal">
+ <origin model="itk" port="DoseFerti"/>
+ <destination model="sunflo_bio" port="DoseFerti"/>
+</connection>
+<connection type="internal">
+ <origin model="itk" port="DoseIrrig"/>
+ <destination model="sunflo_bio" port="DoseIrrig"/>
+</connection>
+<connection type="internal">
+ <origin model="itk" port="densite"/>
+ <destination model="sunflo_bio" port="densite"/>
+</connection>
+<connection type="internal">
+ <origin model="itk" port="zSemis"/>
+ <destination model="sunflo_bio" port="zSemis"/>
+</connection>
+<connection type="internal">
+     <origin model="climat" port="Tx"/>
+     <destination model="sunflo_bio" port="Tx"/>
+    </connection>
+   </connections>
+</model>
+</structures>
+ <dynamics>
+<dynamic library="Decision" name="decision" package="sunflo"/>
+<dynamic library="GenericMean" name="GenericMean" package="vle.discrete-time"/>
+<dynamic library="MeteoReader" name="MeteoReader" package="record.meteo"/>
+<dynamic library="Phenologie" name="Phenologie" package="sunflo"/>
+<dynamic library="TemperatureEfficace" name="TemperatureEfficace" package="sunflo"/>
+<dynamic library="ContrainteEau" name="contrainte_eau" package="sunflo"/>
+<dynamic library="ContrainteLumiere" name="contrainte_lumiere" package="sunflo"/>
+<dynamic library="ContrainteTemperature" name="contrainte_temperature" package="sunflo"/>
+<dynamic library="ContrainteAzote" name="croissance_azote" package="sunflo"/>
+<dynamic library="CroissancePlante" name="croissance_plante" package="sunflo"/>
+<dynamic library="Diagnostic" name="diagnostic" package="sunflo"/>
+<dynamic library="ElaborationQualite" name="elaboration_qualite" package="sunflo"/>
+<dynamic library="ElaborationRendement" name="elaboration_rendement" package="sunflo"/>
+</dynamics>
+ <experiment begin="2453834" combination="linear" duration="181" name="sunflo_simple_new">
+<conditions>
+<condition name="CONFIG_Plante">
+ <port name="AA_a">
+<double>0.100000000000000</double>
+</port>
+ <port name="AP_a">
+<double>0.100000000000000</double>
+</port>
+ <port name="Eb_0">
+<double>1.000000000000000</double>
+</port>
+ <port name="Eb_c">
+<double>4.500000000000000</double>
+</port>
+ <port name="Eb_fin">
+<double>0.015000000000000</double>
+</port>
+ <port name="Eb_max">
+<double>3.000000000000000</double>
+</port>
+ <port name="LAI_Kei">
+<double>0.013790000000000</double>
+</port>
+ <port name="LAI_a">
+<double>400.000000000000000</double>
+</port>
+ <port name="LAI_b">
+<double>1.000000000000000</double>
+</port>
+ <port name="LAI_c">
+<double>153.000000000000000</double>
+</port>
+ <port name="LAI_d">
+<double>851.330000000000041</double>
+</port>
+ <port name="LAI_e">
+<double>-0.037830000000000</double>
+</port>
+ <port name="LAI_f">
+<double>0.784690000000000</double>
+</port>
+ <port name="NomPlante">
+<string>Tournesol</string>
+</port>
+ <port name="Phy1">
+<double>71.430000000000007</double>
+</port>
+ <port name="Phy2">
+<double>16.340000000000000</double>
+</port>
+ <port name="Tbase">
+<double>4.800000000000000</double>
+</port>
+ <port name="Tmax_PHS">
+<double>37.000000000000000</double>
+</port>
+ <port name="Topt1_PHS">
+<double>20.000000000000000</double>
+</port>
+ <port name="Topt2_PHS">
+<double>28.000000000000000</double>
+</port>
+ <port name="a_Pho">
+<double>-25.000000000000000</double>
+</port>
+ <port name="date_TT_F1M0">
+<double>350.000000000000000</double>
+</port>
+ <port name="date_TT_germination">
+<double>86.200000000000003</double>
+</port>
+ <port name="zRac_max">
+<double>1800.000000000000000</double>
+</port>
+</condition>
+<condition name="CONFIG_SimuInit">
+ 
+ 
+ <port name="NomSimuInit">
+<string>indetermine</string>
+</port>
+ <port name="date_levee">
+<double>-1</double>
+</port>
+ <port name="init_value_N1">
+<double>10.000000000000000</double>
+</port>
+ <port name="init_value_N3">
+<double>20.000000000000000</double>
+</port>
+ 
+</condition>
+<condition name="CONFIG_Sol">
+ <port name="Fpf">
+<double>0.200000000000000</double>
+</port>
+ <port name="Hcc_C1">
+<double>19.699999999999999</double>
+</port>
+ <port name="Hcc_C2">
+<double>19.699999999999999</double>
+</port>
+ <port name="Hpf_C1">
+<double>9.699999999999999</double>
+</port>
+ <port name="Hpf_C2">
+<double>9.699999999999999</double>
+</port>
+ <port name="NomSol">
+<string>SolCasNominal</string>
+</port>
+ <port name="TC">
+<double>0.100000000000000</double>
+</port>
+ <port name="Vp">
+<double>0.500000000000000</double>
+</port>
+ <port name="da_C1">
+<double>1.300000000000000</double>
+</port>
+ <port name="da_C2">
+<double>1.300000000000000</double>
+</port>
+ <port name="profondeur">
+<double>1000.000000000000000</double>
+</port>
+<port name="zC1">
+<double>300.000000000000000</double>
+</port>
+    <port name="Hini_C2">
+<double>1</double>
+</port>
+    <port name="Hini_C1">
+<double>1</double>
+</port>
+   <port name="activate_WaterStress">
+     <boolean>1</boolean>
+    </port>
+   </condition>
+<condition name="CONFIG_Variete">
+ <port name="IRg">
+<double>0.398000000000000</double>
+</port>
+ <port name="NomVariete">
+<string>Moyenne</string>
+</port>
+ <port name="PHS">
+<double>1.000000000000000</double>
+</port>
+ <port name="TLN">
+<double>29.000000000000000</double>
+</port>
+ <port name="a_LE">
+<double>-4.420000000000000</double>
+</port>
+ <port name="a_TR">
+<double>-9.300000000000001</double>
+</port>
+ <port name="bSF">
+<double>17.000000000000000</double>
+</port>
+ <port name="cSF">
+<double>448.000000000000000</double>
+</port>
+ <port name="date_TT_E1">
+<double>482.000000000000000</double>
+</port>
+ <port name="date_TT_F1">
+<double>836.000000000000000</double>
+</port>
+ <port name="date_TT_M0">
+<double>1083.000000000000000</double>
+</port>
+ <port name="date_TT_M3">
+<double>1673.000000000000000</double>
+</port>
+ <port name="ext">
+<double>0.880000000000000</double>
+</port>
+ <port name="thp">
+<double>55.399999999999999</double>
+</port>
+</condition>
+<condition name="EXPERT_Plante">
+ <port name="FNLEm">
+<double>0.300000000000000</double>
+</port>
+ <port name="INNseuil">
+<double>0.600000000000000</double>
+</port>
+ <port name="Kc">
+<double>1.200000000000000</double>
+</port>
+ <port name="PNCc_a">
+<double>4.530000000000000</double>
+</port>
+ <port name="PNCc_b">
+<double>0.420000000000000</double>
+</port>
+ <port name="PNCm_a">
+<double>6.490000000000000</double>
+</port>
+ <port name="PNCm_b">
+<double>0.440000000000000</double>
+</port>
+ <port name="TDMc_seuil">
+<double>75.000000000000000</double>
+</port>
+ <port name="TDMm_seuil">
+<double>75.000000000000000</double>
+</port>
+ <port name="VitCroiRac">
+<double>0.700000000000000</double>
+</port>
+ <port name="dHE">
+<double>1.190000000000000</double>
+</port>
+</condition>
+<condition name="EXPERT_Rendement">
+ <port name="SeuilETRETM">
+<double>0.600000000000000</double>
+</port>
+</condition>
+<condition name="contrainte_azote">
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+<port name="syncs">
+     <set>
+      <string>zRac</string>
+      <string>zC3</string>
+      <string>zC2</string>
+      <string>vTRCC2</string>
+      <string>vTRC1</string>
+      <string>vRac</string>
+      <string>Tmoy</string>
+      <string>Teff</string>
+      <string>STOCKC3</string>
+      <string>STOCKC2</string>
+      <string>STOCKC1</string>
+      <string>RWCC1</string>
+      <string>RG</string>
+      <string>Pluie</string>
+      <string>PhasePhenoPlante</string>
+      <string>FTHN</string>
+      <string>FT</string>
+      <string>FHRUE</string>
+      <string>DoseIrrig</string>
+      <string>DoseFerti</string>
+      <string>D3</string>
+      <string>D2</string>
+      <string>D1</string>
+      <string>ActionIrrig</string>
+      <string>ActionFerti</string>
+     </set>
+    </port>
+   </condition>
+<condition name="contrainte_eau">
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+<port name="syncs">
+     <set>
+      <string>ActionIrrig</string>
+      <string>ActionSemis</string>
+      <string>DoseIrrig</string>
+      <string>ETPP</string>
+      <string>PhasePhenoPlante</string>
+      <string>Tmoy</string>
+      <string>Pluie</string>
+      <string>zSemis</string>
+     </set>
+    </port>
+   </condition>
+<condition name="contrainte_lumiere">
+ 
+ 
+ 
+ 
+ 
+<port name="syncs">
+     <set>
+      <string>ActionSemis</string>
+      <string>RG</string>
+      <string>TT_A2</string>
+      <string>densite</string>
+     </set>
+    </port>
+   </condition>
+<condition name="contrainte_temperature">
+ 
+ 
+<port name="syncs">
+     <set>
+      <string>PhasePhenoPlante</string>
+      <string>Tmoy</string>
+     </set>
+    </port>
+   </condition>
+<condition name="croissance_plante">
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+<port name="syncs">
+     <set>
+      <string>ActionSemis</string>
+      <string>FHLE</string>
+      <string>FHRUE</string>
+      <string>FLe</string>
+      <string>FNIRUE</string>
+      <string>FNLE</string>
+      <string>FT</string>
+      <string>PhasePhenoPlante</string>
+      <string>RG</string>
+      <string>TT_A2</string>
+      <string>Teff</string>
+      <string>densite</string>
+     </set>
+    </port>
+   </condition>
+<condition name="diagnostic">
+ 
+ 
+ 
+<port name="syncs">
+     <set>
+      <string>ETRETM</string>
+      <string>TT_A2</string>
+     </set>
+    </port>
+   </condition>
+<condition name="elaboration_qualite">
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+   <port name="syncs">
+     <set>
+      <string>JSM</string>
+      <string>LAI</string>
+      <string>vNabs</string>
+      <string>PhasePhenoPlante</string>
+      <string>Tx</string>
+      <string>Eb</string>
+      <string>iPar</string>
+      <string>INN</string>
+      <string>FTSW</string>
+     </set>
+    </port>
+   </condition>
+<condition name="elaboration_rendement">
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+<port name="syncs">
+     <set>
+      <string>ETRETM</string>
+      <string>INN</string>
+      <string>PhasePhenoPlante</string>
+      <string>TDM</string>
+      <string>TRPF</string>
+      <string>TT_F1</string>
+     </set>
+    </port>
+   </condition>
+<condition name="itk">
+ <port name="fertilization_1">
+<string>date=2006-04-10$dose=0</string>
+</port>
+ <port name="irrigation_1">
+<double>0</double>
+</port>
+ <port name="densite">
+<double>7.000000000000000</double>
+</port>
+ <port name="jrecolte">
+<string>2006-10-01</string>
+</port>
+ <port name="jsemis">
+<string>2006-04-16</string>
+</port>
+ <port name="zSemis">
+<double>30.000000000000000</double>
+</port>
+
+   <port name="irrigation_2">
+<double>0</double>
+</port>
+   <port name="fertilization_2">
+<string>0</string>
+</port>
+   <port name="irrigation_3">
+<double>0</double>
+</port>
+    <port name="irrigation_4">
+<double>0</double>
+</port>
+    <port name="irrigation_5">
+<double>0</double>
+</port>
+    <port name="irrigation_6">
+<double>0</double>
+</port>
+    <port name="irrigation_7">
+<double>0</double>
+</port>
+    <port name="irrigation_8">
+<double>0</double>
+</port>
+    <port name="irrigation_9">
+<double>0</double>
+</port>
+   </condition>
+<condition name="phenologie">
+ 
+ 
+<port name="syncs">
+     <set>
+      <string>ActionSemis</string>
+      <string>Teff</string>
+     </set>
+    </port>
+   </condition>
+<condition name="simulation_engine">
+ <port name="begin">
+<double>0</double>
+</port>
+ <port name="duration">
+<double>181</double>
+</port>
+</condition>
+<condition name="sunflo_climat">
+ <port name="PkgName">
+<string>sunflo</string>
+</port>
+ <port name="day_column">
+<string>Jour</string>
+</port>
+ <port name="meteo_file">
+<string>AUZ_2006.txt</string>
+</port>
+ <port name="meteo_type">
+<string>generic_with_header</string>
+</port>
+ <port name="month_column">
+<string>Mois</string>
+</port>
+ <port name="year_column">
+<string>Annee</string>
+</port>
+</condition>
+<condition name="temperature_efficace">
+ <port name="syncs">
+<set>
+      <string>Tmoy</string>
+     </set>
+</port>
+</condition>
+<condition name="cBegin">
+    <port name="begin_date">
+     <string>2006-04-08</string>
+    </port>
+   </condition>
+  </conditions>
+<views>
+<outputs>
+<output format="local" plugin="storage" location="" name="viewDbg" package="vle.output">
+     <map>
+      <key name="inc_columns">
+       <integer>10</integer>
+      </key>
+      <key name="header">
+       <string>top</string>
+      </key>
+      <key name="rows">
+       <integer>15</integer>
+      </key>
+      <key name="columns">
+       <integer>15</integer>
+      </key>
+      <key name="inc_rows">
+       <integer>10</integer>
+      </key>
+     </map>
+    </output>
+
+<output format="local" plugin="storage" location="" name="viewStatic" package="vle.output">
+     <map>
+      <key name="inc_columns">
+       <integer>10</integer>
+      </key>
+      <key name="header">
+       <string>top</string>
+      </key>
+      <key name="rows">
+       <integer>15</integer>
+      </key>
+      <key name="columns">
+       <integer>15</integer>
+      </key>
+      <key name="inc_rows">
+       <integer>10</integer>
+      </key>
+     </map>
+    </output>
+
+</outputs>
+<observables>
+<observable name="FORCAGE">
+<port name="FHTR"/>
+
+</observable>
+
+<observable name="GenericMean">
+<port name="Mean"/>
+
+</observable>
+
+<observable name="contrainte_azote">
+<port name="CN1">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="DDM">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="Ea">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="FNIRUE">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="FNLE">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="INN">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="INNI">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="N1">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="N3">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="Nabs">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="vAA">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="vAA1">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="vAA2">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="vMF">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="vNA">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="vNAc">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="N2">
+      <attachedview name="viewDbg"/>
+     </port>
+    <port name="TNp">
+      <attachedview name="viewDbg"/>
+     </port>
+    </observable>
+
+<observable name="contrainte_eau">
+<port name="C1">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="ETRETM">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="FHLE">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="FHRUE">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="FHTR">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="FTSW">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="STOCKC1">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="C2">
+      <attachedview name="viewDbg"/>
+     </port>
+     <port name="zRac">
+      <attachedview name="viewDbg"/>
+     </port>
+    <port name="vRac">
+      <attachedview name="viewDbg"/>
+     </port>
+    <port name="TTSW">
+      <attachedview name="viewDbg"/>
+     </port>
+     <port name="ATSW">
+      <attachedview name="viewDbg"/>
+     </port>
+    <port name="TRPF">
+      <attachedview name="viewDbg"/>
+     </port>
+    </observable>
+
+<observable name="contrainte_lumiere">
+<port name="FLe">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="iPAR">
+      <attachedview name="viewDbg"/>
+     </port>
+
+</observable>
+
+<observable name="contrainte_temperature">
+<port name="FT">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="FTHN">
+      <attachedview name="viewDbg"/>
+     </port>
+
+</observable>
+
+<observable name="croissance_plante">
+
+
+<port name="DBP">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="Eb">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="Ebp">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="Ei">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="LAI">
+ <attachedview name="viewDbg"/>
+</port>
+
+<port name="SFp">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="TDM">
+      <attachedview name="viewDbg"/>
+     </port>
+
+
+    </observable>
+
+<observable name="diagnostic">
+<port name="ISH1">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="ISH2">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="ISH3">
+      <attachedview name="viewDbg"/>
+     </port>
+
+</observable>
+
+<observable name="elaboration_qualite">
+<port name="TH">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="photo_TH_aFinMATURATION">
+ 
+
+     <attachedview name="viewDbg"/>
+     <attachedview name="viewStatic"/>
+     </port>
+
+</observable>
+
+<observable name="elaboration_rendement">
+<port name="JSE">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="JSF">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="JSM">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="photo_INN_CROISSANCEACTIVE_A_FLORAISON">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="photo_IRs_aFinMATURATION">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="photo_RDT_aFinMATURATION">
+ 
+<attachedview name="viewDbg"/>
+     <attachedview name="viewStatic"/>
+     </port>
+
+<port name="RDT">
+      <attachedview name="viewDbg"/>
+     </port>
+    </observable>
+
+<observable name="lecture_climat">
+<port name="Pluie">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="Tmin">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="date">
+      <attachedview name="viewDbg"/>
+     </port>
+    <port name="date_str">
+      <attachedview name="viewDbg"/>
+     </port>
+     <port name="ETP">
+      <attachedview name="viewDbg"/>
+     </port>
+    </observable>
+
+<observable name="phenologie">
+<port name="AP">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="PhasePhenoPlante">
+ <attachedview name="viewDbg"/>
+</port>
+
+<port name="TT_F1">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="TT_A2">
+      <attachedview name="viewDbg"/>
+     </port>
+
+<port name="date_CROISSANCEACTIVE">
+      <attachedview name="viewDbg"/>
+     </port>
+     <port name="date_FLORAISON">
+      <attachedview name="viewDbg"/>
+     </port>
+     <port name="date_MATURATION">
+      <attachedview name="viewDbg"/>
+     </port>
+     <port name="date_DESSICATION">
+      <attachedview name="viewDbg"/>
+     </port>
+    </observable>
+
+<observable name="temperature_efficace">
+<port name="Teff">
+      <attachedview name="viewDbg"/>
+     </port>
+
+</observable>
+
+<observable name="decision">
+     <port name="DoseFerti">
+      <attachedview name="viewDbg"/>
+     </port>
+     <port name="DoseIrrig">
+      <attachedview name="viewDbg"/>
+     </port>
+    <port name="ActionRecolte">
+      <attachedview name="viewDbg"/>
+     </port>
+    </observable>
+   </observables>
+<view type="timed" output="viewDbg" timestep="1.000000000000000" name="viewDbg"/>
+
+<view type="finish" output="viewStatic" name="viewStatic"/>
+
+</views>
+</experiment>
+</vle_project>

@@ -4,7 +4,16 @@
 #' March 2025
 #' 
 #' TODO:
-#' add selection pressure
+#' two populations: wild and domesticated
+#' life cycle: growth/production, reproduction, mortality
+#' selection pressure: pest pressure
+#' traits: secondary metabolite expression
+#' when econdary metabolite expression high & high pest pressure then mortality low, but growth lowered
+#' when secondary metabolite expression low & high pest pressure then mortality high, growth remain
+#' when secondary metabolite expression high & low pest pressure then mortality low, growth remain
+#' when secondary metabolite expression low & low pest pressure then mortality high, growth lowered
+#' 
+#' 
 
 library(data.table) # data manipulation
 library(ggplot2) # plotting
@@ -14,6 +23,9 @@ library(parallel)  # parallelization
 num_wild_population <- 50
 num_domesticated_population <- 50
 time_steps <- 0
+
+
+
 
 # Initialize plant population
 initialize_population <- function() {
@@ -56,11 +68,38 @@ initialize_population <- function() {
   return(population)
 }
 
-# Grow function
-grow <- function(population) {
-  population[, size := size + growth_rate * 0.1]
+# # Grow function
+# grow <- function(population) {
+#   population[, size := size + growth_rate * 0.1]
+#   return(population)
+# }
+
+# Updated grow function based on trait and pest pressure
+grow <- function(population, pest_pressure) {
+  population[, growth_rate := fifelse(trait >= 0.5 & pest_pressure >= 0.5, 0.05,
+                               fifelse(trait < 0.5 & pest_pressure < 0.5, 0.05,
+                               0.1))]
+  population[, size := size + growth_rate]
   return(population)
 }
+
+
+# # mortality function
+# suffer_mortality <- function(population, pest_pressure) {
+#   mortality_prob <- pest_pressure * (1 - population$resistance) * 0.1
+#   survivors <- population[runif(.N) >= mortality_prob]
+#   return(survivors)
+# }
+# Updated mortality function based on trait and pest pressure
+suffer_mortality <- function(population, pest_pressure) {
+  population[, mortality_prob := fifelse(trait >= 0.5 & pest_pressure >= 0.5, 0.01,
+                                  fifelse(trait < 0.5 & pest_pressure >= 0.5, 0.2,
+                                  fifelse(trait >= 0.5 & pest_pressure < 0.5, 0.01,
+                                  0.15)))]
+  survivors <- population[runif(.N) >= mortality_prob]
+  return(survivors)
+}
+
 
 # Reproduce function
 reproduce <- function(population) {
@@ -82,12 +121,12 @@ reproduce <- function(population) {
   return(population)
 }
 
-# mortality function
-suffer_mortality <- function(population, pest_pressure) {
-  mortality_prob <- pest_pressure * (1 - population$resistance) * 0.1
-  survivors <- population[runif(.N) >= mortality_prob]
-  return(survivors)
-}
+
+
+
+
+
+
 
 plot_population <- function(population, time_step, results) {
   wild_population_count <- nrow(population[group == "Wild Population"])
@@ -126,6 +165,31 @@ plot_population <- function(population, time_step, results) {
   return(results)
 }
 
+
+# simulate <- function(time_steps, base_pest_pressure) {
+#   population <- initialize_population()
+#   results <- data.table()
+  
+#   for (t in 1:time_steps) {
+#     pest_pressure <- base_pest_pressure + sin(t/10) * 0.2  # Oscillates around base value
+#     pest_pressure <- min(max(pest_pressure, 0), 1)  # Clamp between 0 and 1
+    
+#     population <- grow(population, pest_pressure)
+#     population <- reproduce(population)
+#     population <- suffer_mortality(population, pest_pressure)
+#     results <- plot_population(population, t, results)
+#   }
+
+#   # [ ... plotting code unchanged ... ]
+# }
+
+
+
+
+
+
+
+
 simulate <- function(time_steps, pest_pressure) {
   population <- initialize_population()
   results <- data.table(
@@ -139,6 +203,10 @@ simulate <- function(time_steps, pest_pressure) {
   )
   
   for (t in 1:time_steps) {
+    pest_pressure <- base_pest_pressure + sin(t/10) * 0.2  # Oscillates around base value
+    pest_pressure <- min(max(pest_pressure, 0), 1)  # Clamp between 0 and 1
+    
+
     population <- grow(population)
     population <- reproduce(population)
     population <- suffer_mortality(population, pest_pressure)

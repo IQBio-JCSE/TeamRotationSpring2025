@@ -1,0 +1,2 @@
+sunflo sunflo_simple.vpz viewStatic "sunflo,sunflo_bio,performances:elaboration_qualite.photo_TH_aFinMATURATION" 1 10e-5 52.3059689343957
+sunflo sunflo_simple.vpz viewStatic "sunflo,sunflo_bio,performances:elaboration_rendement.photo_RDT_aFinMATURATION" 1 10e-5 25.0047336054141

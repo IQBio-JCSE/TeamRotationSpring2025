@@ -1,0 +1,12 @@
+Package: sunflo_test
+Version: 0.2.0
+Depends:
+Build-Depends: sunflo, vle.reader, vle.tester
+Conflicts:
+Maintainer: Pierre Casadebaig <pierre.casadebaig@toulouse.inra.fr>
+Description: Still in progress
+ .
+Tags: sunflo
+Url: http://www.vle-project.org/2.0
+Size: 0
+MD5sum: xxxx
