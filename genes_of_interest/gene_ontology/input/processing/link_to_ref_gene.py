@@ -10,7 +10,22 @@ def main(infile, ref_infile, outfile, shared_ref_col, output_ref_col):
     ref_df = pd.read_csv(ref_infile, dtype=str, sep=",", index_col=0)
     # print(shared_ref_col)
 
-    GOIs_ref = ref_df.loc[ref_df[shared_ref_col].isin(gene_list)]
+    GOIs_ref = ref_df.loc[ref_df[shared_ref_col].isin(gene_list)].copy()
+    print(len(gene_list))
+    print(len(GOIs_ref))
+
+    running_l=list()
+    repeats = 0
+    for item in ref_df[shared_ref_col].tolist():
+        if item in gene_list and item in running_l:
+            # print(item)
+            repeats += 1
+        elif item in gene_list:
+            running_l.append(item)
+        
+    print(repeats)
+    print(len(running_l))
+    assert False
     output = GOIs_ref[output_ref_col].tolist()
 
     with open(outfile, "w") as file:

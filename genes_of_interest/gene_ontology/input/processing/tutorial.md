@@ -1,2 +1,5 @@
 `./link_to_ref_gene.py -i ../gene_list_all.csv -r ../../../preprocessing_ref_genome/HanXRQr2.0-SUNRISE_cds_gene_info.csv -s "gene" -c "NCBI_GeneID" -o background_genes_NCBI_ID.list`
 `./link_to_ref_gene.py -i ../filtered_genes.csv -r ../../../preprocessing_ref_genome/HanXRQr2.0-SUNRISE_cds_gene_info.csv -s "gene" -c "NCBI_GeneID" -o diff_expr_genes_NCBI_ID.list `
+
+`./link_to_ref_gene.py -i ../gene_list_all.csv -r ../../../preprocessing_ref_genome/HanXRQr2.0-SUNRISE_genomic_gtf.csv  -s "gene" -c "NCBI_GeneID" -o background_genes_NCBI_ID.list`
+`./link_to_ref_gene.py -i ../filtered_genes.csv -r ../../../preprocessing_ref_genome/HanXRQr2.0-SUNRISE_genomic_gtf.csv  -s "gene" -c "NCBI_GeneID" -o diff_expr_genes_NCBI_ID.list `
