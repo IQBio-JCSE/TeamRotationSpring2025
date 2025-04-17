@@ -20,8 +20,8 @@ library(ggplot2) # plotting
 library(parallel)  # parallelization
 
 # Initialize parameters
-num_wild_population <- 50
-num_domesticated_population <- 50
+num_wild_population <- 1000
+num_domesticated_population <- 1000
 time_steps <- 0
 
 
@@ -31,7 +31,7 @@ time_steps <- 0
 initialize_population <- function() {
   # Create wild population
   wild_population <- data.table(
-    trait = rnorm(num_wild_population, mean = 0.5, sd = 0.3),  # Gaussian distribution
+    trait = rnorm(num_wild_population, mean = 0.7, sd = 0.3),  # Gaussian distribution
     growth_rate = NA,
     reproduction_rate = NA,
     resistance = NA,
@@ -45,7 +45,7 @@ initialize_population <- function() {
 
   # Create domesticated population
   domesticated_population <- data.table(
-    trait = rnorm(num_domesticated_population, mean = 0.4, sd = 0.02),  # Narrow Gaussian distribution
+    trait = rnorm(num_domesticated_population, mean = 0.5, sd = 0.02),  # Narrow Gaussian distribution
     growth_rate = NA,
     reproduction_rate = NA,
     resistance = NA,
@@ -104,7 +104,7 @@ suffer_mortality <- function(population, pest_pressure) {
 # Reproduce function
 reproduce <- function(population) {
   # Calculate number of offspring for each individual plant
-  reproduction_prob <- population$reproduction_rate * 0.05
+  reproduction_prob <- population$reproduction_rate * 0.8
   num_offspring <- floor(reproduction_prob) # Ensure integer
   
   # Create new plants based on reproduction probability
@@ -166,12 +166,12 @@ plot_population <- function(population, time_step, results) {
 }
 
 
-# simulate <- function(time_steps, base_pest_pressure) {
+# simulate <- function(time_steps, pest_pressure) {
 #   population <- initialize_population()
 #   results <- data.table()
   
 #   for (t in 1:time_steps) {
-#     pest_pressure <- base_pest_pressure + sin(t/10) * 0.2  # Oscillates around base value
+#     pest_pressure <- pest_pressure + sin(t/10) * 0.2  # Oscillates around base value
 #     pest_pressure <- min(max(pest_pressure, 0), 1)  # Clamp between 0 and 1
     
 #     population <- grow(population, pest_pressure)
@@ -203,11 +203,11 @@ simulate <- function(time_steps, pest_pressure) {
   )
   
   for (t in 1:time_steps) {
-    pest_pressure <- base_pest_pressure + sin(t/10) * 0.2  # Oscillates around base value
+    pest_pressure <- pest_pressure + sin(t/10) * 0.2  # Oscillates around base value
     pest_pressure <- min(max(pest_pressure, 0), 1)  # Clamp between 0 and 1
     
 
-    population <- grow(population)
+    population <- grow(population, pest_pressure)
     population <- reproduce(population)
     population <- suffer_mortality(population, pest_pressure)
     results <- plot_population(population, t, results)
@@ -253,12 +253,30 @@ simulate <- function(time_steps, pest_pressure) {
     theme_minimal()
 }
   
- 
+ # TODO add evoltution
+# reproduce <- function(population) {
+#   reproduction_prob <- population$reproduction_rate * 0.05
+#   num_offspring <- floor(reproduction_prob)
+#   new_plants <- population[rep(1:.N, num_offspring)]
+#   
+#   if (nrow(new_plants) > 0) {
+#     new_plants[, trait := pmin(pmax(trait + rnorm(.N, 0, 0.01), 0), 1)]  # Mutation
+#     new_plants[, size := 1]
+#     new_plants[, growth_rate := 1 - trait]
+#     new_plants[, reproduction_rate := 1 - trait]
+#     new_plants[, resistance := trait]
+#     population <- rbind(population, new_plants)
+#   }
+#   
+#   return(population)
+# }
 
 
 # Run simulation for single instance to test
 result_plot <- simulate(time_steps = 100, pest_pressure = 0.8)
-result_plot
+result_plot$data
+
+ggsave("simulation_plot.png", plot = result_plot, width = 10, height = 6)
 
 run_simulations_parallel <- function(num_simulations, time_steps, pest_pressure) {
   # Detect the number of available cores
