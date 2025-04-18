@@ -23,7 +23,6 @@
 # LAD_MH    Leaf area duration                                    sum(LAI)
 # DENS      Plant density
 
-
 # predict oil content at harvest time based on following coefficients (Andriana-solo et al., 2014)
 # Coefficients:
 # Estimate Std. Error t value Pr(>|t|)
@@ -57,14 +56,59 @@ oil_content <- function(OC, SFTSW_FM, SFTSW_MH, NNNIE_EM, SNAB_MH, NHT_MH, LAD_M
 }
 
 
-# Crop Biomass Accumulation
+# Crop Biomass Accumulation ---------------------------------------------------
+# Intercepted light is main driver of biomass accumulation (CropBiomassRate),
+# based on Monteith (1977) model.
+
+# CropBiomass_t = CropBiomass_t−1 + (PAR_t  ×RIE_t × RUE_t)
 crop_biomass <- function(PAR, RIE, RUE, previous_biomass) {
   return(previous_biomass + (PAR * RIE * RUE))
 }
 
+# Photosynthetically active radiation -----------------------------------------
+# (PAR) is 48% of total radiation (Monteith, 1977) <-- citation unsure about
+# PAR_t = Radiation_t  × 0.48
 
+PAR <- function(radiation) {
+  return(radiation * 0.48)
+}
 
+# Harvest Index ---------------------------------------------------------------
+# symbol  description                                 unit  formula
+# NETR_EF Edaphic water deficit (discrete)            d     sum(ET/PET < 0.6)
+# NETR_FM Edaphic water deficit (discrete)            d     sum(ET/PET < 0.6)
+# NETR_MH Edaphic water deficit (discrete)            d     sum(ET/PET < 0.6)
+# STDM_F  Aerial Biomass at flowering                 g.m−2 max(TDM
+# STR_FH  Sum of water loss through transpiration     mm    sum(TR)
+# TT_FH   Thermal time since flowering (4.8 C basis)  C.d   sum(TM−4.8)
+# HI      Potential harvest index
 
+# following coefficients used to predict harvest index at harvest time (Casade-
+# baig et al., 2011).
+# Coefficients:
+# Estimate Std. Error t value Pr(>|t|)
+# (Intercept) 9.370e-02 6.996e-02 1.339 0.182276
+# STDM_F -1.552e-04 6.376e-05 -2.434 0.015982 *
+# NETR_EF -2.828e-03 1.335e-03 -2.118 0.035650 *
+# NETR_FM -2.557e-03 1.174e-03 -2.178 0.030813 *
+# NETR_MH -1.940e-03 4.995e-04 -3.884 0.000148 ***
+# STR_FH -3.907e-04 1.696e-04 -2.304 0.022464 *
+# TT_FH 1.274e-04 3.190e-05 3.992 9.80e-05 ***
+# HI 8.189e-01 1.540e-01 5.317 3.34e-07 ***
+# ---
+# Signif. codes: 0 ’***’ 0.001 ’**’ 0.01 ’*’ 0.05 ’.’ 0.1 ’ ’ 1
+# Adjusted R-squared: 0.3036 F-statistic: 11.84 on 7 and 167 DF, p-value: 3.311e-12
+
+harvest_index <- function(STDM_F, NETR_EF, NETR_FM, NETR_MH, STR_FH, TT_FH) {
+  return(0.09370 - 
+         0.0001552 * STDM_F - 
+         0.002828 * NETR_EF - 
+         0.002557 * NETR_FM - 
+         0.001940 * NETR_MH - 
+         0.0003907 * STR_FH + 
+         0.0001274 * TT_FH + 
+         0.8189) # TODO is this correct? Should it be 0.8189 * HI?
+}
 
 
 
@@ -115,18 +159,9 @@ radiation_use_efficiency <- function(thermal_time, TDF1, TDM0, TDM3, r0, rmax, r
   }
 }
 
-# Harvest Index
-harvest_index <- function(TDF1, TDM0, TDM3, thermal_time) {
-  if (thermal_time < TDF1) {
-    return(0.2)
-  } else if (thermal_time < TDM0) {
-    return(0.4)
-  } else if (thermal_time < TDM3) {
-    return(0.5)
-  } else {
-    return(0.6)
-  }
-}
+
+
+
 
 
 
