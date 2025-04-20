@@ -286,3 +286,47 @@ thermal_time <- function(mean_temperature, base_temperature = 4.8, water_stress_
     return(0)
   }
 }
+
+# Leaf Area Parameters --------------------------------------------------------
+# Parameters related to leaf area development and senescence
+
+leaf_area_parameters <- list(
+  PotentialLeafNumber = 29.0, # Potential number of leaves at flowering (leaf)
+  PotentialLeafProfile = 17.0, # Potential rank of the plant's largest leaf at flowering (leaf)
+  PotentialLeafSize = 448.0, # Potential area of the plant's largest leaf at flowering (cm²)
+  Phyllotherm_1 = 71.4, # Phyllotherm for leaves <= 6 (C.d)
+  Phyllotherm_7 = 16.3, # Phyllotherm for leaves > 6 (C.d)
+  PotentialLeafDurationMin = 153.0, # Asymptote of leaf longevity function, base leaf duration (C.d)
+  PotentialLeafDurationMax = 851.3, # Maximum thermal time between expansion and senescence (C.d)
+  PotentialLeafDurationWidth = 0.8, # Width of leaf longevity function (leaf)
+  PotentialGrowthSlope = 0.0 # Rate of leaf growth and senescence processes (-)
+)
+
+# Leaf Initiation Time --------------------------------------------------------
+# Computes the thermal time for leaf initiation based on leaf rank
+# TODO check is i = leaf_rank?
+leaf_initiation_time <- function(leaf_rank, phyllotherm_1 = 71.4, phyllotherm_7 = 16.3, potential_leaf_number = 29.0) {
+  if (leaf_rank <= 6) {
+    return(leaf_rank * phyllotherm_1)
+  } else if (leaf_rank <= potential_leaf_number) {
+    return((leaf_rank - 5) * phyllotherm_7 + 6 * phyllotherm_1)
+  } else { # TODO is this needed?
+    stop("Leaf rank exceeds potential leaf number.")
+  }
+}
+
+# Leaf Expansion Time ---------------------------------------------------------
+# Computes  thermal time for leaf expansion based on leaf initiation time
+leaf_expansion_time <- function(leaf_initiation_time, a = 0.01379) {
+  return(leaf_initiation_time + (1 / a))
+}
+
+# TODO Leaf Senescence Time --------------------------------------------------------
+# Computes the thermal time for leaf senescence based on leaf expansion time
+leaf_senescence_time <- function(leaf_expansion_time, 
+                                  potential_leaf_duration_min = 153.0, 
+                                 potential_leaf_duration_max = 851.3, 
+                                 potential_leaf_duration_width = 0.8) {
+  return(leaf_expansion_time + potential_leaf_duration_min + 
+           (potential_leaf_duration_max - potential_leaf_duration_min) / (1 + exp(-potential_leaf_duration_width)))
+}
