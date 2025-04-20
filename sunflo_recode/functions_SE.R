@@ -264,8 +264,12 @@ phenology_parameters <- list(
 
 # Emergence Function ----------------------------------------------------------
 # Computes emergence time based on germination, elongation rate, & sowing depth
-# Emergence = Germination + (ElongationRate × SowingDepth)
-emergence_time <- function(germination, elongation_rate, sowing_depth) {
+# Germination= 86, Thermal time for germination (°C.d);
+# ElongationRate= 1.19, Hypocotyl elongation rate (°Cd mm-1)
+# SowingDepth= 30, Default sowing depth (mm)
+emergence_time <- function(germination = 86.2, 
+                          elongation_rate = 1.19, 
+                          sowing_depth = 30) {
   return(germination + (elongation_rate * sowing_depth))
 }
 
