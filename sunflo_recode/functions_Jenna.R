@@ -1,5 +1,6 @@
 # Jenna Functions
 
+#### FROM THE RSUNFLO REPO #####
 # summarise timed output variables 
 #' @export indicate
 indicate <- function(x, integration="crop", Tb=4.8) {
@@ -235,6 +236,125 @@ indicate <- function(x, integration="crop", Tb=4.8) {
   return(o)
 }
 
+###### END: FROM SUNFLO REPO ##############
+
+# Variables which are passed in, list:
+'''
+SowingDensity <- crop_density from default params
+Rainfall <- #from the climate data file
+Irrigation <- #from the climate data file MAYBE?
+PET <- #from the climate data file as ETP
+StoneContent <- think this is pre=defined and constant
+SoilDensity 
+T_m <- from climate file
+RootGrowthRate <- predefined?
+RootDepthLimit <- predefined ; but how is it difference from RootDepthMax
+Radiation <- from climate file
+ThermalTimeFlowering <- predefined 
+ThermalTimeMaturity <- predefined
+ThermalTimeSenescence <- predefined
+harvest <- # Date of harvest, predefined and calcualted based on the climate file
+'''
+
+
+# Initialize vectors for things that have a value for each timepoints
+CropBiomass <- numeric(harvest+1) #TODO: check length adjustment is correct
+RIE <- numeric(harvest+1)
+LAI <- numeric(harvest+1)
+PlantLeafArea <- numeric(harvest+1)
+
+TotalLeafArea <- numeric(harvest+1)
+SenescentLeafArea <- numeric(harvest+1)
+
+LeafExpansionRate <- numeric(harvest+1)
+LeafSenescenceRate <- numeric(harvest+1)
+
+WaterStress <- numeric(harvest+1)
+WaterStressExpansion <- numeric(harvest+1)
+WaterAvailable <- numeric(harvest+1)
+Evaporation <- numeric(harvest+1)
+Transpiration <- numeric(harvest+1)
+Drainage <- numeric(harvest+1)
+WaterTotal <- numeric(harvest+1)
+WaterDemand <- numeric(harvest+1)
+WaterStressConductance <- numeric(harvest+1)
+  
+NitrogenStressExpansion <- numeric(harvest+1)
+NitrogenSupply <- numeric(harvest+1)
+NitrogenDemand <- numeric(harvest+1)
+CropNitrogenConcentraionCritical <- numeric(harvest+1)
+NitrogenUptake <- numeric(harvest+1)
+NNI <- numeric(harvest+1) # not sure if this is necessary to save? 
+
+PAR <- numeric(harvest+1)
+RUE <- numeric(harvest+1)
+
+PET <- numeric(harvest+1)
+
+WaterStressPhenology <- numeric(harvest+1)
+ThermalTime <- numeric(harvest+1)
+
+
+# Connecting functions, will need to import most functions from sarah elizabeth
+# harvest = final_day + 1
+for (t in 2:harvest) {
+  
+  # Calc RIE
+  # Water stress
+  x <- () # should be number of days since last water input
+  WaterStressEvaporation <- water_stress_evaporation(x, Rainfall[t], Irrigation[t]) #NDY some function to calc this, will need to look more later
+  Evaporation[t] <- evaporation(RIE[t], PET[t], WaterStressEvaporation) #RIE defined below, may have to move this up
+  WaterDemand[t] <- water_demand(RIE[t], PET[t]) # NDY
+  WaterStressConductance[t] <- water_stress_conductance(WaterStress[t]) #NDY
+  Transpiration[t] <- transpiration(WaterDemand[t], WaterStressConductance[t]) # NDY
+  Drainage[t] <- drainage() # did not see this defined in the documentation
+  WaterAvailable[t] <- water_available(Rainfall[t],Irrigation[t],Evaporation[t],
+                                       Transpiration[t],Drainage[t]) # NDY
+  RootDepth[t] <- root_depth(RootGrowthRate, T_m[t], RootDepthLimit)
+  SoilWaterCapacity <- soil_water_capacity() # NDY , looks like this does not have to be vector? may  be predefined
+  WaterTotal[t] <- water_total(RootDepth[t], SoilWaterCapacity, SoilDensity, StoneContent) # NDY
+  WaterStress[t] <- water_stress(WaterAvailable[t], WaterTotal[t]) # NDY
+  WaterStressxpansion[t] <- water_stress_expansion(WaterStress[t]) # NDY
+  
+  # Nitrogen stress
+  NitrogenUptake[t] <- nitrogen_uptake() # did not see this defined in the documentation
+  NitrogenSupply[t] <- nitrogen_supply(NitrogenUptake[t]) #NDY
+  CropNitrogenConcentraionCritical[t] <- crop_nitrogen_concentration(CropBiomass[t], a=4.53, b=0.42) #NDY, assuming crop nitrogen conc calcs all by one function
+  NitrogenDemand[t] <- nitrogen_demand(CropNitrogenConcentraionCritical[t], CropBiomass[t]) #NDY
+  NNI <- nitrogen_nutrition_index(NitrogenSupply[t], NitrogenDemand[t]) # NDY
+  NitrogenStressExpansion[t] <- nitrogen_stress_expansion(NNI) # NDY
+  
+  # Probably have to do something here for each leaf?
+  LeafNumber <- () #NDY , don't see this in the paper
+  for (i in 1:LeafNumber) {
+    LeafSenescenceRate[t][i] <- leaf_senescence_rate(ThermalTime, LeafSenescenceTime[i]) # fill in later
+    LeafExpansionRate[t][i] <- ()
+    SenescentLeafArea[t][i] <- senescent_leaf_area(LeafSenescenceRate[t])
+    TotalLeafArea[t][i] <- total_leaf_area(LeafExpansionRate[t], WaterStressExpansion[t], NitrogenStressExpansion[t]) # review function for this, should just be the sum?
+  }
+  
+  PlantLeafArea[t] <- plant_leaf_area(TotalLeafArea[t], SenescentLeafArea[t]) # Do we need to pass in i, number of leaves? or is this deduced in the function?
+  LAI <- leaf_area_index(SowingDensity, PlantLeafArea[t])
+  
+  # Radiation stress
+  RIE[t] <- radiation_interception(LAI[t])
+  
+  ### End RIE for now
+  
+  # Calc PAR
+  PAR[t] <- PAR(Radiation[t]) # rename one of these to not have same name
+  
+  # Calc RUE
+  WaterStressPhenology[t] <- water_stress_phenology(WaterStressConductance[t])
+  ThermalTime[t] <- thermal_time(T_m[t], WaterStressPhenology[t])
+  RUE[t] <- radiation_use_efficiency(ThermalTime[t], ThermalTimeFlowering, ThermalTimeMaturity, ThermalTimeSenescence)
+  
+  # Final output, crop yield for entire harvest
+  CropBiomass[t+1] <- crop_biomass(RIE[t], PAR[t], RUE[t], CropBiomass[t])
+
+}
+
+CropYield_harvest <- crop_yeild(CropBiomass[harvest], HarvestIndex[harvest]) #note: fix spelling
 
 
 
@@ -252,67 +372,3 @@ indicate <- function(x, integration="crop", Tb=4.8) {
 
 
 
-# From the parametrization_default file, indicators_metadata sheet
-# Defining functions for factors temperature and water
-
-calc_TT  <- function() {}
-calc_D_SE <- function() {}
-calc_D_EF <- function() {}
-calc_D_FM <- function() {}
-calc_D_MH <- function() {}
-calc_NHT <- function() {}
-calc_NLT <- function() {}
-calc_SHT <- function() {}
-calc_SLT <- function() {}
-calc_SFTRUE <- function() {}
-calc_TT_SE <- function() {}
-calc_TT_EF <- function() {}
-calc_TT_FM <- function() {}
-calc_TT_MH <- function() {}
-calc_SFTRUE_EF <- function() {}
-calc_SFTRUE_FM <- function() {}
-calc_SFTRUE_MH <- function() {}
-calc_NLT_EF <- function() {}
-calc_NLT_FM <- function() {}
-calc_NLT_MH <- function() {}
-calc_NHT_EF <- function() {}
-calc_NHT_FM <- function() {}
-calc_NHT_MH <- function() {}
-calc_SLT_EF <- function() {}
-calc_SLT_FM <- function() {}
-calc_SLT_MH <- function() {}
-calc_SHT_EF <- function() {}
-calc_SHT_FM <- function() {}
-calc_SHT_MH <- function() {}
-calc_SRR <- function() {}
-calc_SPET <- function() {}
-calc_SCWD <- function() {}
-calc_SFTSW <- function() {}
-calc_MET <- function() {}
-calc_NET <- function() {}
-calc_SFHTR <- function() {}
-calc_SFHRUE <- function() {}
-calc_SRR_EF <- function() {}
-calc_SRR_FM <- function() {}
-calc_SRR_MH <- function() {}
-calc_SPET_EF <- function() {}
-calc_SPET_FM <- function() {}
-calc_SPET_MH <- function() {}
-calc_SCWD_EF <- function() {}
-calc_SCWD_FM <- function() {}
-calc_SCWD_MH <- function() {}
-calc_MET_EF <- function() {}
-calc_MET_FM <- function() {}
-calc_MET_MH <- function() {}
-calc_NET_EF <- function() {}
-calc_NET_FM <- function() {}
-calc_NET_MH <- function() {}
-calc_SFTSW_EF <- function() {}
-calc_SFTSW_FM <- function() {}
-calc_SFTSW_MH <- function() {}
-calc_SFHRUE_EF <- function() {}
-calc_SFHRUE_FM <- function() {}
-calc_SFHRUE_MH <- function() {}
-calc_SFHTR_EF <- function() {}
-calc_SFHTR_FM <- function() {}
-calc_SFHTR_MH <- function() {}
