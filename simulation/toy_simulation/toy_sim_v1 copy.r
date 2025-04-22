@@ -19,6 +19,18 @@ library(data.table) # data manipulation
 library(ggplot2) # plotting
 library(parallel)  # parallelization
 
+# 3 parameters of interest:
+# temperature
+# percipitation
+# pest pressure
+
+
+# linear relationship between tempurture and yeild
+
+# relationship between yield
+# serve as a place holder until we have better data for the species
+
+
 # Initialize parameters
 num_wild_population <- 1000
 num_domesticated_population <- 1000

@@ -374,3 +374,6 @@ thermal_stress_mineralization <- function(daily_mean_temperature) {
   return(stress_mineralization)
 }
 
+
+
+# 
