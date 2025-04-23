@@ -5,8 +5,27 @@
 #' 
 #' TODO:
 #' two populations: wild and domesticated
-#' life cycle: growth/production, reproduction, mortality
-#' selection pressure: pest pressure
+#' time step: 1 year
+#' life cycle: growth/production, reproduction, mortality, selection
+#' 3 parameters of interest:
+#' temperature
+#' percipitation
+#' pest pressure
+#' wild population has higher secondary metabolite expression
+  #' growth/production function of base growth rate (lower than domesticated population),
+  #' climate, & secondary metabolite expression (higher in wild population & decreases with domestication)
+  #' mortality function of base mortality rate (linear relationship, dealth by 3-5 years), climate (high temperature & low percipitation),
+  #' herbivory with high pest pressure (but lower than domesticated population),
+  #' reproduction function of base reproduction rate (lower than domesticated population), 
+  #' less with high pest pressure (so secondary metabolite expression higher),
+  #' selection function of human selection on higher yeild production & natural selction
+#' domesticated population has lower secondary metabolite expression
+#' life cycle in one year
+  #' growth/production function of base growth rate (higher than wild population) & climate (no extreme temperature & percipitation),
+  #' reproduction function of base reproduction rate (higher than wild population), 
+  #' mortality function of climate (high temperature & low percipitation), pest pressure (higher mortality rate with pest pressure than wild population),
+  #' selection function of human selection on higher yeild production
+  #' all indivduals (death every life cycle)
 #' traits: secondary metabolite expression
 #' when econdary metabolite expression high & high pest pressure then mortality low, but growth lowered
 #' when secondary metabolite expression low & high pest pressure then mortality high, growth remain
@@ -19,10 +38,7 @@ library(data.table) # data manipulation
 library(ggplot2) # plotting
 library(parallel)  # parallelization
 
-# 3 parameters of interest:
-# temperature
-# percipitation
-# pest pressure
+
 
 
 # linear relationship between tempurture and yeild
