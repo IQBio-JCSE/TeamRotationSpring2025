@@ -1,4 +1,6 @@
 # Sarah Elizabeth's Functions
+# vector for testing
+test_vector <- c(1, 2, 3, 4, 5)
 
 # adding functions from https://onlinelibrary.wiley.com/action/downloadSupplement?doi=10.1111%2Fpce.13001&file=pce13001-sup-0001-Data_S1.pdf
 
@@ -277,10 +279,11 @@ emergence_time <- function(germination = 86.2,
 # Computes thermal time based on base temperature, mean air temperature,
 # & water stress
 
-thermal_time <- function(mean_temperature, base_temperature = 4.8, water_stress_phenology = 0) {
+thermal_time <- function(mean_temperature, t, base_temperature = 4.8, water_stress_phenology = 0) {
+  # vector of daily mean air temperature (°C)
   # If mean temperature is greater than base temperature, calculate thermal time
-  if (mean_temperature > base_temperature) {
-    return((mean_temperature - base_temperature) * (1 + water_stress_phenology))
+  if (mean_temperature[t] > base_temperature) {
+    return(sum((mean_temperature[t] - base_temperature) * (1 + water_stress_phenology)))
   } else {
     # Otherwise, thermal time is 0 (no stress)
     return(0)
@@ -304,7 +307,7 @@ leaf_area_parameters <- list(
 
 # Leaf Initiation Time --------------------------------------------------------
 # Computes the thermal time for leaf initiation based on leaf rank
-# TODO check is i = leaf_rank?
+# TODO check is i = leaf_rank
 leaf_initiation_time <- function(leaf_rank, phyllotherm_1 = 71.4, phyllotherm_7 = 16.3, potential_leaf_number = 29.0) {
   if (leaf_rank <= 6) {
     return(leaf_rank * phyllotherm_1)
@@ -330,3 +333,47 @@ leaf_senescence_time <- function(leaf_expansion_time,
   return(leaf_expansion_time + potential_leaf_duration_min + 
            (potential_leaf_duration_max - potential_leaf_duration_min) / (1 + exp(-potential_leaf_duration_width)))
 }
+
+# ThermalStressRUE ------------------------------------------------------------
+# impact of temperature on photosynthesis is modeled with a piecewise linear
+# function, with four thresholds defined below (Villalobos et al., 1996)
+# input: mean temp for day, t
+# output: single value for thermal stress on RUE
+
+# assuming base_temperature = 4.8, optimal_lower_temperature = 20,
+# optimal_upper_temperature = 28, critical_temperature = 37
+
+
+thermal_stress_rue <- function(daily_mean_temperature) {
+  stress_rue <- ifelse(
+    daily_mean_temperature > 4.8 & daily_mean_temperature <= 20,
+    daily_mean_temperature * (1 / (20 - 4.8)) - (4.8 / (20 - 4.8)),
+    ifelse(
+      daily_mean_temperature > 20 & daily_mean_temperature <= 28,
+      1,
+      ifelse(
+        daily_mean_temperature > 28 & daily_mean_temperature <= 37,
+        daily_mean_temperature * (1 / (28 - 37)) - (37 / (28 - 37)),
+        0
+      )
+    )
+  )
+  return(stress_rue)
+}
+
+# ThermalStressMineralization -------------------------------------------------
+# logistic function to describe effect of air temperature on net nitrogen
+# mineralization (Valé, 2006; Valé et al., 2007)
+# base_temperature <- 15 # Tb
+# critical_temperature <- 36 # Tc
+
+thermal_stress_mineralization <- function(daily_mean_temperature) {
+  # Logistic function for thermal stress on mineralization
+  stress_mineralization <- 36 / 
+    (1 + (36 - 1) * exp(-0.119 * (daily_mean_temperature - 15)))
+  return(stress_mineralization)
+}
+
+
+
+# 
