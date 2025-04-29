@@ -52,6 +52,14 @@ terpenoid_genes_list <- terpenoid_genes_list %>%
 # Save dataset as a .csv file 
 write.csv(terpenoid_genes_list, "terpenoid_sig_genes.csv", row.names = FALSE)
 
+# More complete dataset with all the KEGG IDs
+terpenoid_KEGG <- terpenoid_genes_list %>%
+  left_join(terpenoid_genes, by = c("gene_name" = "ID"))
+
+# Save dataset as a .csv file 
+write.csv(terpenoid_KEGG, "terpenoid_KEGG_genes.csv", row.names = FALSE)
+
+
 # Reset plotting computer
 dev.off()
 
