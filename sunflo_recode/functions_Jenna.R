@@ -245,19 +245,74 @@ Rainfall <- #from the climate data file
 Irrigation <- #from the climate data file MAYBE?
 PET <- #from the climate data file as ETP
 StoneContent <- think this is pre=defined and constant
-SoilDensity 
+SoilDensity <- predefined from default params
 T_m <- from climate file
 RootGrowthRate <- predefined?
 RootDepthLimit <- predefined ; but how is it difference from RootDepthMax
 Radiation <- from climate file
-ThermalTimeFlowering <- predefined 
-ThermalTimeMaturity <- predefined
-ThermalTimeSenescence <- predefined
-harvest <- # Date of harvest, predefined and calcualted based on the climate file
+ThermalTimeVegetative <- predefined, TDE1
+ThermalTimeFlowering <- predefined, TDF1 
+ThermalTimeMaturity <- predefined, TDM3
+ThermalTimeSenescence <- predefined, TDM0
+harvest <- # Date of harvest, predefined and calculated based on the climate file
+x <- 0 #days since last water input
+PotentialOilContent <- # predefined value
+Fertilization <- # prefdefined values 
+RelativeWaterContent <- # Should be a constant based on theta values???
+PotentialMineralizationRate <- # Contstant
+PotentialLeafSize <- # from default params
+PotentialLeafNumber <- # from default params 
+LeafInitiationTime <- initialize_leaf_generation(n_possible_leaves, PotentialLeafNumber)
+LeafNumber <- 0 # starts at 0 and increases. used to search LeafInitiationTimes vector
+LeafExpansionTime <- init_leaf_expansion_time(LeafInitiationTime)
+LeafExpansionDuration <- init_leaf_expansion_duration(PotentialLeafNumber, PotentialLeafSize,
+                                         PotentialLeafProfile)
+LeafSenscenseTime <- LeafExpansionTime + LeafExpansionDuration
+PotentialLeafArea <- init_potential_leaf_area(LeafNumber, PotentialLeafSize, PotentialLeafProfile) # NDY , see .rmd file for a and b values
+
+SoilWaterCapacity_wp <- # wilting point, same for all depths
+SoilWaterCapacity_fc <- #Field capcity, same for all depths for default val
+SoilWaterCapacity_available_water <- SoilWaterCapacity_fc -SoilWaterCapacity_wp # NDY , calculated from predefined values
+
+area <- size of plot?? will need to define this somewhere
 '''
 
+initialize_leaf_generation <- function(n_possible_leaves = 500, Phyllotherm_1=76.43,Phyllotherm_7=16.34) {
+  #default n_possible_leaves picked an arbitrary value for this... could adjust later if needed
+  init_leaf_tt <- numeric(n_possible_leaves)
+  for (i in 1:n_possible_leaves) {
+    if (i <= 6) {
+      init_leaf_tt[i] <- (i * Phyllotherm_1)
+    } else {
+      init_leaf_tt[i] <- ((i-5) * Phyllotherm_7) + 6 * Phyllotherm_1
+    }
+  }
+  return (init_leaf_tt)
+}
+
+init_leaf_expansion_time <- function(LeafInitiationTime, a = 0.01379) {
+  return (LeafInitiationTime + (1/a))
+}
+
+init_potential_leaf_area <- function(PotentialLeafNumber, PotentialLeafSize, PotentialLeafProfile,
+                                     a=2.05, b=0.049) {
+  enumerated_leaf_numbers <- seq(1,PotentialLeafNumber)
+  leaf_profile_exp <- (enumerated_leaf_numbers-PotentialLeafProfile)/(PotentialLeafProfile -1)
+  exp_a <- a * leaf_profile_exp**2
+  exp_b <- b * leaf_profile_exp**3
+  return (PotentialLeafSize * exp(exp_a + exp_b))
+}
+
+init_leaf_expansion_duration <- function(PotentialLeafNumber, PotentialLeafSize,
+                                         PotentialLeafProfile,
+                                          a=153, b=851.3, c=0.78) {
+  enumerated_leaf_numbers <- seq(1,PotentialLeafNumber)
+  exponent=(-1*(enumerated_leaf_numbers - PotentialLeafProfile)**2)/((c*PotentialLeafNumber)**2)
+  return (a+b*exp(exponent))
+}
 
 # Initialize vectors for things that have a value for each timepoints
+# May be clearer to put this in a dataframe? 
 CropBiomass <- numeric(harvest+1) #TODO: check length adjustment is correct
 RIE <- numeric(harvest+1)
 LAI <- numeric(harvest+1)
@@ -285,15 +340,29 @@ NitrogenDemand <- numeric(harvest+1)
 CropNitrogenConcentraionCritical <- numeric(harvest+1)
 NitrogenUptake <- numeric(harvest+1)
 NNI <- numeric(harvest+1) # not sure if this is necessary to save? 
+SoilNitrogenConcentration <- numeric(harvest+1)
 
 PAR <- numeric(harvest+1)
 RUE <- numeric(harvest+1)
 
-PET <- numeric(harvest+1)
-
 WaterStressPhenology <- numeric(harvest+1)
 ThermalTime <- numeric(harvest+1)
+ThermalStressRUE <- numeric(harvest + 1)
+RelativeWaterContent <- numeric(harvest + 1)
+WaterContentTheta <- numeric(harvest + 1)
 
+CropYield <- numeric(harvest+1)
+
+### Define other functions to process inputs
+days_since_water_input <- function(rainfall, irrigation, current_x) {
+  curr_water_input <- rainfall+irrigation
+  if (curr_water_input <= 4) {
+    return (current_x + 1)
+  } else {
+    return (0)
+  }
+}
+### end functions
 
 # Connecting functions, will need to import most functions from sarah elizabeth
 # harvest = final_day + 1
@@ -301,39 +370,88 @@ for (t in 2:harvest) {
   
   # Calc RIE
   # Water stress
-  x <- () # should be number of days since last water input
+  x <- days_since_water_input(Rainfall[t], Irrigation[t],x) # should be number of days since last water input
   WaterStressEvaporation <- water_stress_evaporation(x, Rainfall[t], Irrigation[t]) #NDY some function to calc this, will need to look more later
   Evaporation[t] <- evaporation(RIE[t], PET[t], WaterStressEvaporation) #RIE defined below, may have to move this up
   WaterDemand[t] <- water_demand(RIE[t], PET[t]) # NDY
   WaterStressConductance[t] <- water_stress_conductance(WaterStress[t]) #NDY
   Transpiration[t] <- transpiration(WaterDemand[t], WaterStressConductance[t]) # NDY
-  Drainage[t] <- drainage() # did not see this defined in the documentation
   WaterAvailable[t] <- water_available(Rainfall[t],Irrigation[t],Evaporation[t],
-                                       Transpiration[t],Drainage[t]) # NDY
+                                       Transpiration[t]) # NDY . don't actually need drainage in this function. BUT, add if statment, cannot exceed SoilWaterCapcity_fc
+  # Add something here to calcualte the gravimetric water content at the time
+  area <- ()
+  WaterContentTheta[t] <- water_content_theta(WaterAvailable[t], area)
+  RelativeWaterContent[t] <- relative_water_content(WaterContentTheta[t]) # NDY
+  
+  Drainage[t] <- drainage(WaterAvailable[t], SoilWaterCapacity_fc) # did not see this defined in the documentation
   RootDepth[t] <- root_depth(RootGrowthRate, T_m[t], RootDepthLimit)
-  SoilWaterCapacity <- soil_water_capacity() # NDY , looks like this does not have to be vector? may  be predefined
-  WaterTotal[t] <- water_total(RootDepth[t], SoilWaterCapacity, SoilDensity, StoneContent) # NDY
+  WaterTotal[t] <- water_total(RootDepth[t], SoilWaterCapacity_available_water, SoilDensity, StoneContent) # NDY
   WaterStress[t] <- water_stress(WaterAvailable[t], WaterTotal[t]) # NDY
-  WaterStressxpansion[t] <- water_stress_expansion(WaterStress[t]) # NDY
+  WaterStressExpansion[t] <- water_stress_expansion(WaterStress[t]) # NDY
+  
+ 
+
+  TranspirationRate[t] <- Transpiration[t] # using same logic as other places
+  Leaching[t] <- Drainage[t] * SoilNitrogenConcentration[t] #not defined in documentation, depends on drainage (also not defined)
+  DenitrificationRate <- denitrification_rate(Tm) # NDY
+  Denitrification[t] <- DenitrificationRate[t] * 1
+  
+  # Mineralization
+  WaterStressMineralization[t] <- water_stress_mineralization(RelativeWaterContent[t])
+  ThermalStressMineralization[t] <- thermal_stress_mineralization(Tm) 
+  MineralizationRate[t] <- mineralization_rate(PotentialMineralizationRate,
+                                               WaterStressMineralization,
+                                               ThermalStressMineralization[t]) # NDY
+  Mineralization[t] <- MineralizationRate[t] * 1 # check with other rate things 
   
   # Nitrogen stress
-  NitrogenUptake[t] <- nitrogen_uptake() # did not see this defined in the documentation
-  NitrogenSupply[t] <- nitrogen_supply(NitrogenUptake[t]) #NDY
-  CropNitrogenConcentraionCritical[t] <- crop_nitrogen_concentration(CropBiomass[t], a=4.53, b=0.42) #NDY, assuming crop nitrogen conc calcs all by one function
-  NitrogenDemand[t] <- nitrogen_demand(CropNitrogenConcentraionCritical[t], CropBiomass[t]) #NDY
+  SoilNitrogenContent[t] <- soil_nitrogen_content(Fertilization[t],
+                              Mineralization[t],Leaching[t], Denitrification[t],
+                              NitrogenUptake[t]) # NDY
+
+  SoilNitrogenConcentration[t] <- soil_nitrogen_concentration(SoilNitrogenContent[t],RootDepth[t],
+                                                              WaterContentTheta[t], SoilDensity) # NDY , see jenna_notes
+  
+  NitrogenSupplyRate[t] <- nitrogen_uptake_rate(TranspirationRate[t], SoilNitrogenConcentration[t]) #NDY , same thing as nitrogen update rate
+ 
+  # Same as NitrogenUptake, no functions for this in the documentation
+  # Given because we look at one day at a time, the rate per day can
+  # be multiplied by the number of days we are looking at (1) to get the 
+  # nitrogen supply/uptake for that day
+  NitrogenSupply[t] <- NitrogenSupplyRate[t] * 1 # this is the same thing as nitrogen uptake
+  
+  CropNitrogenConcentrationCritical[t] <- crop_nitrogen_concentration(CropBiomass[t], a=4.53, b=0.42) #NDY, assuming crop nitrogen conc calcs all by one function
+  NitrogenDemand[t] <- nitrogen_demand(CropNitrogenConcentrationCritical[t], CropBiomass[t]) #NDY
   NNI <- nitrogen_nutrition_index(NitrogenSupply[t], NitrogenDemand[t]) # NDY
   NitrogenStressExpansion[t] <- nitrogen_stress_expansion(NNI) # NDY
   
-  # Probably have to do something here for each leaf?
-  LeafNumber <- () #NDY , don't see this in the paper
+  # Leaf stuff
+  # Check: will next leaf grow?
+  if (ThermalTime[t] >= LeafInitiationTime[LeafNumber + 1]) {
+    LeafNumber += 1
+  }
+  # Calculate these parameters for each existing leaf
+  # I think total leaf area and senescent leaf area can be re-calc each time
+  leaf_data <- data.frame(
+    LeafSenescenceRate <- numeric(LeafNumber),
+    SenescentLeafArea <- numeric(LeafNumber),
+    
+    LeafExpansionRate <- numeric(LeafNumber),
+    LeafExpansionTime <- numeric(LeafNumber),
+    
+    TotalLeafArea <- numeric(LeafNumber)
+  )
+  
   for (i in 1:LeafNumber) {
-    LeafSenescenceRate[t][i] <- leaf_senescence_rate(ThermalTime, LeafSenescenceTime[i]) # fill in later
-    LeafExpansionRate[t][i] <- ()
-    SenescentLeafArea[t][i] <- senescent_leaf_area(LeafSenescenceRate[t])
-    TotalLeafArea[t][i] <- total_leaf_area(LeafExpansionRate[t], WaterStressExpansion[t], NitrogenStressExpansion[t]) # review function for this, should just be the sum?
+    leaf_data$LeafSenescenceRate[i] <- leaf_senescence_rate(ThermalTime, LeafSenescenceTime[i]) # fill in later
+    leaf_data$LeafExpansionRate[i] <- leaf_expansion_rate(Tm, PotentialLeafArea[i],
+                                        ThermalTime[t], LeafExpansionTime[i]) # NDY
+    leaf_data$SenescentLeafArea[i] <- senescent_leaf_area(LeafSenescenceRate[t])
+    leaf_data$TotalLeafArea[i] <- total_leaf_area(LeafExpansionRate[t], WaterStressExpansion, NitrogenStressExpansion, t) # review function for this, should just be the sum?
   }
   
-  PlantLeafArea[t] <- plant_leaf_area(TotalLeafArea[t], SenescentLeafArea[t]) # Do we need to pass in i, number of leaves? or is this deduced in the function?
+  # Do we need to pass in i, number of leaves? or is this deduced in the function?
+  PlantLeafArea[t] <- plant_leaf_area(leaf_data$TotalLeafArea, leaf_data$SenescentLeafArea)
   LAI <- leaf_area_index(SowingDensity, PlantLeafArea[t])
   
   # Radiation stress
@@ -347,22 +465,94 @@ for (t in 2:harvest) {
   # Calc RUE
   WaterStressPhenology[t] <- water_stress_phenology(WaterStressConductance[t])
   ThermalTime[t] <- thermal_time(T_m[t], WaterStressPhenology[t])
-  RUE[t] <- radiation_use_efficiency(ThermalTime[t], ThermalTimeFlowering, ThermalTimeMaturity, ThermalTimeSenescence)
+  
+  ThermalStressRUE[t] <- thermal_stress_rue(Tm[t]) # NDY
+  
+  # NDY , same formulas for water stress expansion, water stress RUE, water stress
+  # leaf expansion, and water stress transpiration, according to SUNFLO pub.
+  WaterStressRUE[t] <- water_stess_expansion(WaterStress[t]) 
+  
+  # Below is not defined, but if we assume that the nitrogen demand 
+  NitrogenDemandRate[t] <- NitrogenDemand[t] 
+  NitrogenStressRUE[t] <- nitrogen_stress_rue(NitrogenSupplyRate[t], NitrogenDemandRate[t]) # NDY Not well defined. ratio of daily update rate to daily demand 
+  
+  # Some of the below thermal time values should be constants I think, 
+  # May need to modify function definition
+  RUE[t] <- radiation_use_efficiency(ThermalTime[t], ThermalStressRUE[t], 
+                                     WaterStressRUE[t], NitrogenStressRUE[t])
   
   # Final output, crop yield for entire harvest
   CropBiomass[t+1] <- crop_biomass(RIE[t], PAR[t], RUE[t], CropBiomass[t])
-
+  CropYield[t] <- crop_yeild(CropBiomass[t],HarvestIndex[t])
 }
 
 CropYield_harvest <- crop_yeild(CropBiomass[harvest], HarvestIndex[harvest]) #note: fix spelling
 
+# Expected outputs according to parameters_default sheet:
+# ! before things that we do not have yet
+# X before things we have
+# ? for things I am not sure about how to calculate
+'''
+Calc from the climate file, as vectors: 
+! TemperatureAirMin
+! TemperatureAirMax
+! TemperatureAirMean
+! Radiation
+! PET
+! Rainfall
 
+Below are all from the model:
+X ThermalTime
+! PhenoStage - not sure about this one, can it be calculated in post or is it necessary for steps of the model??? 
+X WaterStress
+? WaterStressConductance (transpiration)
+? WaterStressConductance (photosynthesis) - different from above?
+! WaterSupplyDemandRatio - should be easy to calc: water stress divided by water demand? 
+! ThermalStressRUE - may need to include as part of RUE calculation
+! NitrogenAbsorbed - might just be the sum of NitrogenSupply
+X NitrogenNutritionIndex (this is the NNI)
+! NitrogenStressRUE - may need to include as part of RUE calculation 
+X LAI
+X RIE
+X RUE
+X CropBiomass
 
+Calc at end (?): 
+X CropYield 
+X OilContent - below, check because missing some vars in SE-defined function
+'''
 
+# Calc additional outputs 
+# Other parameters may be set as constants ? - may need to rewrite function 
+# Also requires nitrogen absorbed
+NitrogenAbsorbed <- sum(NitrogenSupply) # I think this is correct?
+OilContent <- oil_content(PotentialOilContent, NNI, TemperatureAirMean, RUE, LAI)
 
-
-
-
+# Save into output dataframe
+output <- data.frame(
+  TemperatureAirMin = TemperatureAirMin,
+  TemperatureAirMax = TemperatureAirMax,
+  TemperatureAirMean = Tm,
+  Radiation = Radiation,
+  PET = PET,
+  Rainfall = Rainfall,
+  ThermalTime = ThermalTime,
+  #PhenoStage
+  WaterStress = WaterStress,
+  WaterStressConductance = WaterStressConductance,
+  WaterStressRUE = WaterStressRUE,
+  WaterSupplyDemandRatio <- WaterAvailable/WaterDemand, # Not 100% sure this is correct formula
+  ThermalStressRUE <- ThermalStressRUE, 
+  NitrogenAbsorbed <- NitrogenAbsorbed,
+  NitrogenNutritionIndex <- NNI,
+  NitrogenStressRUE <- NitrogenStressRUE,
+  LAI = LAI,
+  RIE = RIE,
+  RUE = RUE,
+  CropBiomass = CropBiomass,
+  CropYield = CropYield,
+  OilContent = OilContent
+)
 
 
 
