@@ -1,21 +1,11 @@
 
 #### Load libraries and data #### 
-library(dplyr)
-library(tidyr)
-library(tibble)
-library(readr)
-library(ggplot2)
-library(purrr)
-library(magrittr)
-library(pheatmap)
-library(textshape)
-library(Rcpp)
-library(matrixStats)
-library(rtracklayer)
-library(tidyverse)
-library(DESeq2)
-library(broom)
-library(reshape)
+library(readr)       
+library(dplyr)       
+library(tibble)      
+library(DESeq2)      
+library(ggplot2)     
+library(pheatmap) 
 
 # Set a working directory 
 setwd("/scratch/Users/cava3224/team_rotation/github_repo/Team_rotation")
@@ -27,11 +17,8 @@ load("results/results_counts.RData")
 load("results/data_files.RData")
 
 #### Upload terpenoid synthesis genes list ####
-terpenoid_genes <- read.table("terpenoid_synthesis__genes_of_interest.tsv", 
-                              header = TRUE, 
-                              sep = "\t", 
-                              row.names = 1, 
-                              stringsAsFactors = FALSE)
+terpenoid_genes <- read_tsv("terpenoid_synthesis__genes_of_interest.tsv")
+
 
 # Select genes from the significant list that match the terpenoid synthesis genes
 terpenoid_genes_list <- filtered_genes %>%
@@ -47,9 +34,26 @@ tpm_sig_expr_with_genes <- rownames_to_column(tpm_signif_expr, var = "gene_ID")
 
 terpenoid_sig_tpm <- tpm_sig_expr_with_genes[tpm_sig_expr_with_genes$gene_ID %in% terpenoid_genes_list$gene_name, ]
 
+# Add a column to indicate up or down regulation to look for KEGG pathway later
+P_VALUE_FILTER   <- 0.01
+LOG2_FOLD_FILTER <- 1.5
 
-# MA plot
-#plotMA(res)
+terpenoid_sig_counts$regulation <- case_when(
+  terpenoid_sig_counts$padj < P_VALUE_FILTER & terpenoid_sig_counts$log2FoldChange > LOG2_FOLD_FILTER  ~ "Upregulated",
+  terpenoid_sig_counts$padj < P_VALUE_FILTER & terpenoid_sig_counts$log2FoldChange < -LOG2_FOLD_FILTER ~ "Downregulated",
+  TRUE ~ "Not significant")
+
+terpenoid_genes_list$regulation <- terpenoid_sig_counts$regulation[match(terpenoid_genes_list$gene_name, terpenoid_sig_counts$gene_id)]
+
+# Delete not significant genes 
+terpenoid_genes_list <- terpenoid_genes_list %>%
+  filter(regulation != "Not significant")
+
+# Save dataset as a .csv file 
+write.csv(terpenoid_genes_list, "terpenoid_sig_genes.csv", row.names = FALSE)
+
+# Reset plotting computer
+dev.off()
 
 #### PCA plot ####
 # rlog transformation for normalization
@@ -115,8 +119,8 @@ ggplot(volcano_data, aes(x = log2FoldChange, y = -log10(padj))) +
 ggsave("results/volcano_plot_sig_genes.png", width = 8, height = 6, dpi = 300)
 
 ####Heatmap for tepenoid significant genes ####
-#rownames(terpenoid_sig_tpm) <- terpenoid_sig_tpm$gene_ID
-#terpenoid_sig_tpm <- terpenoid_sig_tpm %>%
+rownames(terpenoid_sig_tpm) <- terpenoid_sig_tpm$gene_ID
+terpenoid_sig_tpm <- terpenoid_sig_tpm %>%
   select(-gene_ID)
 
 log_tpm_matrix <- log2(terpenoid_sig_tpm + 1)
