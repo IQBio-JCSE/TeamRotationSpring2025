@@ -1,282 +1,339 @@
-# Jenna Functions
+# Jenna Stanislaw 
 
-#### FROM THE RSUNFLO REPO #####
-# summarise timed output variables 
-#' @export indicate
-indicate <- function(x, integration="crop", Tb=4.8) {
-  
-  # Définition des périodes d'intégration
-  # semis - levee
-  SE <- x$PhenoStage == 1
-  # levée - fin maturité
-  EH <- (x$PhenoStage > 1 & x$PhenoStage < 6)
-  # levée - debut maturité
-  EM <- (x$PhenoStage > 1 & x$PhenoStage < 5)
-  # levée - floraison
-  EF <- (x$PhenoStage == 2 | x$PhenoStage == 3)
-  # initiation florale - début maturité
-  FIM <- (x$PhenoStage == 3 | x$PhenoStage == 4)
-  # floraison - début maturité
-  FM <- x$PhenoStage == 4
-  # floraison - fin maturité
-  FH <- (x$PhenoStage == 4 | x$PhenoStage == 5)
-  # début maturité - fin maturité
-  MH <- x$PhenoStage == 5
-  
-  
-  switch(integration,
-    
-    crop = {
-      # Calcul des indicateurs
-      o <- data.frame(
-
-        # Phenologie
-        D_SE = sum(SE),
-        D_EF = sum(EF),
-        D_FM = sum(FM),
-        D_MH = sum(MH),
-        TT = sum((x$TM[EH] - Tb)[(x$TM[EH] - Tb) > 0]),
-        
-        # Ressources environnementales
-        SGR = sum(x$GR[EH] * 0.48), # PAR
-        SRR = sum(x$RR[EH]),
-        SPET = sum(x$PET[EH]),
-        SCWD = sum(x$RR[EH] - x$PET[EH]),
-        
-        # Contraintes hydriques
-        ## basés sur FTSW
-        SFTSW = sum(1 - x$FTSW[EH]),
-        NET = sum(x$ETPET[EH] < 0.6),
-        SFHTR = sum(1 - x$FHTR[EH]),
-        SFHRUE = sum(1 - x$FHRUE[EH]), 
-        
-        # Contraintes azotées
-        # NNIF = x[x$PhasePhenoPlante==4,"NNI"][1], # INN floraison
-        SNNI = sum(1 - x$NNI[EH & x$NNI <1]), #  déficit d'azote 
-        SNAB = last(x$NAB[EH]),  # quantité totale d'azote absorbé 
-        SFNRUE = sum(1 - x$FNRUE[EH]),
-        
-        # Contraintes thermiques
-        SFTRUE = sum(1 - x$FTRUE[EH]),
-        NHT = sum(x$TM[EH] > 28),
-        NLT = sum(x$TM[EH] < 20),
-        SHT = sum(1 - curve_thermal_rue(x$TM[EH], type="high")),
-        SLT = sum(1 - curve_thermal_rue(x$TM[EH], type="low")),
-        
-        # Évolution de la surface foliaire
-        LAI = max(x$LAI[EH]),
-        LAD = sum(x$LAI[EH]), 
-        
-        # Rayonnement intercepté (PAR)
-        SIR = sum(x$RIE[EH] * x$GR[EH] * 0.48),
-        
-        # Photosynthèse
-        MRUE = mean(x$RUE[EH]),
-        
-        # Biomasse accumulée
-        STDM = max(x$TDM[EH]),
-        
-        # Performances
-        GY = max(x$GY),
-        OC = max(x$OC)
-      ) 
-    },
-         
-    phase = {       
-       # Calcul des indicateurs
-       o <- data.frame(
-         
-         # Phenologie
-         D_SE = sum(SE),
-         D_EF = sum(EF),
-         D_FM = sum(FM),
-         D_MH = sum(MH),
-         
-         # Ressources environnementales
-         # Somme de rayonnement
-         SGR = sum(x$GR[EH]),
-         SGR_EF = sum(x$GR[EF]),
-         SGR_FM = sum(x$GR[FM]),
-         SGR_MH = sum(x$GR[MH]),
-         
-         # Cumul de précipitations
-         SRR = sum(x$RR[EH]),
-         SRR_EF = sum(x$RR[EF]),
-         SRR_FM = sum(x$RR[FM]),
-         SRR_MH = sum(x$RR[MH]),
-         
-         # Cumul d'évapotranspiration potentielle
-         SPET = sum(x$PET[EH]),
-         SPET_EF = sum(x$PET[EF]),
-         SPET_FM = sum(x$PET[FM]),
-         SPET_MH = sum(x$PET[MH]),
-         
-         # Déficit hydrique climatique : sum(P-PET)
-         SCWD = sum((x$RR-x$PET)[EH]),
-         SCWD_EF = sum((x$RR-x$PET)[EF]),
-         SCWD_FM = sum((x$RR-x$PET)[FM]),
-         SCWD_MH = sum((x$RR-x$PET)[MH]),
-         
-         # Déficit hydrique édaphique : mean(ET/PET)
-         MET = mean(x$ETPET[EH]),
-         MET_EF = mean(x$ETPET[EF]),
-         MET_FM = mean(x$ETPET[FM]),
-         MET_MH = mean(x$ETPET[MH]),
-         
-         # Déficit hydrique édaphique qualitatif : sum(ET/PET < 0.6)
-         NET = sum(x$ETPET[EH] < 0.6),
-         NET_EF = sum(x$ETPET[EF] < 0.6), 
-         NET_FM = sum(x$ETPET[FM] < 0.6),
-         NET_MH = sum(x$ETPET[MH] < 0.6),
-         
-         # Déficit hydrique édaphique quantitatif : sum(1-FTSW)
-         SFTSW = sum(1 - x$FTSW[EH]),
-         SFTSW_EF = sum(1 - x$FTSW[EF]), 
-         SFTSW_FM = sum(1 - x$FTSW[FM]),
-         SFTSW_MH = sum(1 - x$FTSW[MH]),
-         
-         # Effet de la contrainte hydrique sur la photosynthèse : sum(1-FHRUE)
-         SFHRUE = sum(1 - x$FHRUE[EH]),
-         SFHRUE_EF = sum(1 - x$FHRUE[EF]), 
-         SFHRUE_FM = sum(1 - x$FHRUE[FM]),
-         SFHRUE_MH = sum(1 - x$FHRUE[MH]),
-         
-         # Effet de la contrainte hydrique sur la transpiration : sum(1-FHTR)
-         SFHTR = sum(1 - x$FHTR[EH]),
-         SFHTR_EF = sum(1 - x$FHTR[EF]), 
-         SFHTR_FM = sum(1 - x$FHTR[FM]),
-         SFHTR_MH = sum(1 - x$FHTR[MH]),
-         
-         # Somme de température 
-         TT = sum((x$TM[EH] - Tb)[(x$TM[EH] - Tb) > 0]),
-         TT_SE = sum((x$TM[SE] - Tb)[(x$TM[SE] - Tb) > 0]),
-         TT_EF = sum((x$TM[EF] - Tb)[(x$TM[EF] - Tb) > 0]),
-         TT_FM = sum((x$TM[FM] - Tb)[(x$TM[FM] - Tb) > 0]),
-         TT_MH = sum((x$TM[MH] - Tb)[(x$TM[MH] - Tb) > 0]),       
-         
-         # Contraintes thermiques
-         SFTRUE = sum(1 - x$FTRUE[EH]),
-         SFTRUE_EF = sum(1 - x$FTRUE[EF]), 
-         SFTRUE_FM = sum(1 - x$FTRUE[FM]),
-         SFTRUE_MH = sum(1 - x$FTRUE[MH]),
-         
-         # heat stress
-         NHT = sum(x$TM[EH] > 28),
-         NHT_EF = sum(x$TM[EF] > 28),
-         NHT_FM = sum(x$TM[FM] > 28),
-         NHT_MH = sum(x$TM[MH] > 28),
-         SHT = sum(1 - curve_thermal_rue(x$TM[EH], type="high")),
-         SHT_EF = sum(1 - curve_thermal_rue(x$TM[EF], type="high")),
-         SHT_FM = sum(1 - curve_thermal_rue(x$TM[FM], type="high")),
-         SHT_MH = sum(1 - curve_thermal_rue(x$TM[MH], type="high")),
-         
-         # cold stress
-         NLT = sum(x$TM[EH] < 20),
-         NLT_EF = sum(x$TM[EF] < 20),
-         NLT_FM = sum(x$TM[FM] < 20),
-         NLT_MH = sum(x$TM[MH] < 20),
-         SLT = sum(1 - curve_thermal_rue(x$TM[EH], type="low")),
-         SLT_EF = sum(1 - curve_thermal_rue(x$TM[EF], type="low")),
-         SLT_FM = sum(1 - curve_thermal_rue(x$TM[FM], type="low")),
-         SLT_MH = sum(1 - curve_thermal_rue(x$TM[MH], type="low")),
-         
-         # nitrogen stress 
-         # NNIF = x[x$PhasePhenoPlante==4,"NNI"][1], # INN floraison
-         # absorbed nitrogen
-         SNAB = max(x$NAB[EH]),
-         SNAB_EF = max(x$NAB[EF]),
-         SNAB_FM = max(x$NAB[FM]),
-         SNAB_EM = max(x$NAB[EM]),
-         SNAB_MH = max(x$NAB[MH]),
-         
-         # nitrogen nutrition index 
-         SNNI = sum(1 - x$NNI[EH & x$NNI <1]),
-         SNNI_EF = sum(1 - x$NNI[EF & x$NNI <1]),
-         SNNI_FM = sum(1 - x$NNI[FM & x$NNI <1]),
-         SNNI_MH = sum(1 - x$NNI[MH & x$NNI <1]),
-         
-         # nitrogen impact on phytosynthesis
-         SFNRUE = sum(1 - x$FNRUE[EH]),
-         SFNRUE_EF = sum(1 - x$FNRUE[EF]),
-         SFNRUE_FM = sum(1 - x$FNRUE[FM]),
-         SFNRUE_MH = sum(1 - x$FNRUE[MH]),
-      
-         # NNI at flowering
-         NNI_F = x$NNI[FM][1],
-         
-         # Nombre de jours INN < 0.8 jusqu'à M0
-         NNNID_EM = sum(x$NNI[EM] < 0.8),
-         NNNIE_EM = sum((x$NNI[EM] > 1.2) & (x$NNI[EM] < 2)),
-         
-         # Indice foliaire maximum
-         LAI = max(x$LAI),
-         
-         # Durée de surface foliaire : sum(x$LAI)
-         LAD = sum(x$LAI[EH]),
-         
-         # Rayonnement intercepté (PAR)
-         SIR = sum(x$RIE[EH] * x$GR[EH] * 0.48),
-         SIR_EF = sum(x$RIE[EF] * x$GR[EF] * 0.48),
-         SIR_FM = sum(x$RIE[FM] * x$GR[FM] * 0.48),
-         SIR_MH = sum(x$RIE[MH] * x$GR[MH] * 0.48),
-         
-         # Photosynthèse
-         MRUE = mean(x$RUE[EH]),
-         
-         # Biomasse
-         STDM = max(x$TDM[EH]),
-         STDM_F = x$TDM[FM][1],
-         
-         # Performance
-         GY = max(x$GY),
-         OC = max(x$OC)
-       ) 
-     }         
-  )
-  return(o)
+# Additional functions that have not already been defined in functions_SE.R
+thermal_time_discrete <- function(prev_ThermalTime, T_m, WaterStressPhenology, T_b=4.8) {
+  curr_ThermalTime <- 0 
+  if (T_m > T_b ) {
+    curr_ThermalTime <- (T_m - T_b) * (1 + WaterStressPhenology)
+  }
+  return (prev_ThermalTime + curr_ThermalTime)
 }
 
-###### END: FROM SUNFLO REPO ##############
+### ROOTS ###
+# Root growth is a linear function of temperature and stops at estimated maximum 
+# soil rooting depth.
+# RootDepth = with:
+#  (RootGrowthRate × Tm, if RootDepth < RootDepthLimit RootDepthLimit, else
+#    • RootGrowthRate = 0.7, root elongation rate (mm °Cd-1)
+#    • RootDepthMax = 1800, maximum root depth (mm)
+root_depth <- function(Tm, RootGrowthRate = 0.7, RootDepthLimit = 1800) {
+  calc_root_depth <- RootGrowthRate * Tm
+  if (calc_root_depth > RootDepthLimit) {
+    return (RootDepthLimit)
+  } else {
+    return (calc_root_depth)
+  }
+}
 
-# Variables which are passed in, list:
-'''
-SowingDensity <- crop_density from default params
-Rainfall <- #from the climate data file
-Irrigation <- #from the climate data file MAYBE?
-PET <- #from the climate data file as ETP
-StoneContent <- think this is pre=defined and constant
-SoilDensity <- predefined from default params
-T_m <- from climate file
-RootGrowthRate <- predefined?
-RootDepthLimit <- predefined ; but how is it difference from RootDepthMax
-Radiation <- from climate file
-ThermalTimeVegetative <- predefined, TDE1
-ThermalTimeFlowering <- predefined, TDF1 
-ThermalTimeMaturity <- predefined, TDM3
-ThermalTimeSenescence <- predefined, TDM0
-harvest <- # Date of harvest, predefined and calculated based on the climate file
-x <- 0 #days since last water input
-PotentialOilContent <- # predefined value
-Fertilization <- # prefdefined values 
-RelativeWaterContent <- # Should be a constant based on theta values???
-PotentialMineralizationRate <- # Contstant
-PotentialLeafSize <- # from default params
-PotentialLeafNumber <- # from default params 
-LeafInitiationTime <- initialize_leaf_generation(n_possible_leaves, PotentialLeafNumber)
-LeafNumber <- 0 # starts at 0 and increases. used to search LeafInitiationTimes vector
-LeafExpansionTime <- init_leaf_expansion_time(LeafInitiationTime)
-LeafExpansionDuration <- init_leaf_expansion_duration(PotentialLeafNumber, PotentialLeafSize,
-                                         PotentialLeafProfile)
-LeafSenscenseTime <- LeafExpansionTime + LeafExpansionDuration
-PotentialLeafArea <- init_potential_leaf_area(LeafNumber, PotentialLeafSize, PotentialLeafProfile) # NDY , see .rmd file for a and b values
+### WATER ###
 
-SoilWaterCapacity_wp <- # wilting point, same for all depths
-SoilWaterCapacity_fc <- #Field capcity, same for all depths for default val
-SoilWaterCapacity_available_water <- SoilWaterCapacity_fc -SoilWaterCapacity_wp # NDY , calculated from predefined values
+# The water balance model treats the soil as a reservoir with three dynamic layers:
+# surface layer (0-30 cm), root layer (30-rooting front), and soil layer (rooting front - soil depth) (Sarr et al., 2004)
+# Rainfall, irrigation and evaporation only impacts the balance of the surface layer. 
+# Water movement in the soil is assumed to be only vertical, with runoff and lateral 
+# flow being ignored. Drainage occurs when the water content of a layer exceeds 
+# its water retention capacity (defined by the SoilWaterCapacity parameter).
+# WaterAvailablet = Rainfallt + Irrigationt −Evaporationt −Transpirationt −Drainaget
+# Jenna note: Because drainage is determined based on how much the water of the surface
+# layer exceeds the field capacity, it is not actually needed to calculate the
+# amount of water available in the surface layer of soil
+water_available_before_drain <- function(prev_WaterAvailable, Rainfall,Irrigation,Evaporation, Transpiration) {
+  return (prev_WaterAvailable + Rainfall + Irrigation - Evaporation - Transpiration)
+}
 
-area <- size of plot?? will need to define this somewhere
-'''
+# Units for depth are assumed to be cm. Units for density g/cm^3
+convert_mmwater_to_gravimetric <- function(mm_water, soil_depth, soil_density) {
+  return(mm_water*soil_depth*soil_density*100)
+}
 
+# Units for water assume to be %. Units for density g/cm^3
+convert_gravimetric_to_mm_water <- function(water_theta, soil_depth, soil_density=1.3) {
+  depth <- max(30,soil_depth)
+  return((water_theta/100)*depth*soil_density)
+}
+
+# Jenna note: check that this function is accurately calculating the %
+# * 100 at end to convert back to a percent
+water_content_theta <- function(WaterAvailable, RootDepth, SoilDepth_surface_layer=30,
+                                SoilDensity=1.3) {
+  depth <- max(30,RootDepth)
+  return (WaterAvailable/(depth *SoilDensity) * 100)
+}
+
+# Jenna note: this is not defined explicity in the paper or the documentation
+drainage <- function(WaterAvailable, RootDepth, SoilWaterCapacity_fc) {
+  depth <- max(30,RootDepth)
+  max_water <- convert_gravimetric_to_mm_water(SoilWaterCapacity_fc, RootDepth)
+  #percent_water <- water_content_theta(WaterAvailable,RootDepth) # Convert water to cm
+  difference <- (WaterAvailable - max_water)
+  if (difference <= 0) {
+    return (0)
+  } else {
+    return (difference)
+  }
+}
+
+# Soil evaporation is modeled with the same approach as crop transpiration.
+# Evaporationt = (1 − RIE) × PET × WaterStressEvaporation
+evaporation <- function(RIE, PET, WaterStressEvaporation) {
+ return ((1 - RIE) * PET * WaterStressEvaporation) 
+}
+
+# WaterStressEvaporation = square_root(x + 1) − square_root(x)
+# The relative soil evaporation is based on Ritchie (1981) two-stage model, 
+# where soil evaporation is reduced as a function (WaterStressEvaporation) of
+# the number of days since last water input (x)
+water_stress_evaporation <- function(x) {
+  return (sqrt(x+1)-sqrt(x))
+}
+
+# Crop transpiration rate correspond to the water demand scaled by the reduction
+# of transpiration under water deficit (control of stomatal conductance).
+# Transpirationt = WaterDemandt × WaterStressConductancet
+transpiration <- function(WaterDemand, WaterStressConductance) {
+  return (WaterDemand * WaterStressConductance)
+}
+
+# Water demand is a function of crop light interception and potential evapotranspiration.
+# WaterDemandt = RIEt × PETt × Kc with Kc = 1.2, crop coefficient
+water_demand <- function(RIE, PET, K_c = 1.2) {
+  return (RIE * PET * K_c)
+}
+
+# The fraction of transpirable soil water (FTSW, Sinclair, 2005) accounts for the
+# amount of soil water available to the plant within the root zone. FTSW is used 
+# to drive function representing various physiological responses to water deficit 
+# in the model.
+# WaterStresst = FTSWt = WaterAvailablet/WaterTotalt
+water_stress <- function(WaterAvailable, WaterTotal){
+  return(WaterAvailable/WaterTotal)
+}
+
+# Total water available for the crop depends on rooting depth and soil texture and density.
+# WaterTotalt = RootDeptht × SoilWaterCapacity × SoilDensity × (1 − StoneContent) 
+# with SoilWaterCapacity = θfc −θwp, the difference between the gravimetric water
+# content at field capacity and at wilting point.
+# Jenna note: here, I use SoilWaterCapacity_available_water, beacuse the SoilWaterCapacity
+# is defined in different ways in different parts of the documentation. This is precalculated
+# before being passed into the function based on the definition given above
+water_total <- function(RootDepth, SoilWaterCapacity_available_water, 
+                         SoilDensity, StoneContent){
+  return(RootDepth*SoilWaterCapacity_available_water*SoilDensity*(1-StoneContent))
+}         
+
+# Leaf expansion and plant transpiration rates are exponentially reduced with in-
+# creased water deficit. The same response curve is used for transpiration (WaterStressConductance)
+# and photosynthesis (WaterStressRUE).
+# Depemds on a ∈ [−15.6; −2.3], genotype-dependent response parameter
+water_stress_expansion <- function(WaterStress) {
+  a = -8.95
+  return ( -1 + (2/(1+exp(a * WaterStress))))
+}
+
+water_stress_conductance <- function(WaterStress) {
+  a = -8.95
+  return (1/(1+exp(4.5 * a * WaterStress)))
+}
+
+# Accelerated crop developement under water deficit is modeled as a function 
+# plant sensitivity to water deficit.
+# WaterStressPhenologyt = a × (1 − WaterStressConductancet)
+# with a = 0.1, scaling parameter for water-stress plant heating
+water_stress_phenology <- function(WaterStressConductance, a = 0.1){
+  return (a * (1 - WaterStressConductance))
+}
+
+# The effect of soil water content on net mineral nitrogen mineralization is
+# described by a linear function (Mary et al., 1999; Valé, 2006).
+# WaterStressMineralization = (1 − y0) × RelativeWaterContent + y0
+# with:
+# • y0 = 0.2, relative nitrogen mineralization rate at wilting point
+# • RelativeWaterContent = (θ−θwp)/(θfc−θwp) , relative water content in surface layer. 
+# Jenna note: Here, fp and wp theta value represents various version of the 
+# SoilWaterCapacity, for field capacity and wilting point respectively
+# The current theta values is represented as WaterContentTheta in the main script
+water_stress_mineralization <- function(RelativeWaterContent, y0 = 0.2) {
+  return ((1-y0) * RelativeWaterContent * y0)
+}
+
+
+relative_water_content <- function(theta, theta_wp, theta_fc) {
+  return ((theta - theta_wp)/(theta_fc - theta_wp))
+}
+
+### NITROGEN ###
+
+# The mineral nitrogen content of the soil layers (kg ha-1) depends on nitrogen 
+# fertilization, mineralization, leaching, denitrification, and plant uptake. 
+# The amount of nitrogen added to the surface layer from fertilization depends 
+# on a threshold of water input (5 mm) for solubilization and nitrogen use efficiency, 
+# which is modeled as a linear function of crop growth rate (g m -2 °Cd-1) (Limaux et al., 1999).
+# Leaching is the product of drained water (Drainage) and the nitrogen concentration from the soil layer concerned.
+# SoilNitrogenContentt = Fertilizationt + Mineralizationt − Leachingt − Denitrificationt − NitrogenUptaket
+soil_nitrogen_content <- function(prev_SoilNitrogenContent, Fertilization, Mineralization,Leaching, Denitrification, NitrogenUptake) {
+  return (SoilNitrogenContent + Fertilization + Mineralization - Leaching - Denitrification - NitrogenUptake)
+} 
+
+# Nitrogen mineralization takes place in surface layer and is impacted by relative 
+# soil water content and temperature.
+# MineralizationRatet = PotentialMineralizationRate × WaterStressMineralizationt × ThermalStressMineralizationt
+mineralization_rate <- function(PotentialMineralizationRate,  WaterStressMineralization, 
+                                ThermalStressMineralization) {
+  return (PotentialMineralizationRate * WaterStressMineralization * ThermalStressMineralization)
+}
+
+# Denitrification occurs when the surface soil layer is water saturated and is a 
+# function of air temperature (Sinclair and Muchow, 1995).
+# DenitrificationRatet =6×exp(a×Tm−b)
+# with:
+#  • Tm, daily mean air temperature (°C);
+#  • a = 0.07738 and b = 6.593 (Sinclair and Muchow, 1995)
+denitrification_rate <- function(Tm, a = 0.07738, b = 6.59) {
+  return (6 * exp(a * Tm -b))
+}
+
+# Soil nitrogen is absorbed in the transpirational stream (mass flow).
+# NitrogenSupplyt = NitrogenUptaket
+# NitrogenUptakeRatet = TranspirationRatet × SoilNitrogenConcentrationt
+nitrogen_uptake_rate <- function(TranspirationRate, SoilNitrogenConcentration) {
+  return (TranspirationRate * SoilNitrogenConcentration)
+}
+
+# Crop nitrogen demand is driven by the nitrogen dilution in the biomass produced.
+# Two thresholds (critical and maximal) for plant nitrogen concentration 
+# (% dry matter) were thus experimentally defined by monitoring nitrogen accumulation
+# in relation to crop biomass for various fertilization levels (0–160 kg ha-1) 
+# in field (Debaeke et al., 2012).
+# CropNitrogenConcentration = min(a, a × CropBiomass−b)
+# with:
+#  • CropBiomass, daily shoot biomass (t ha-1);
+#  • CropNitrogenConcentrationCritical is defined with a = 4.53 and b = 0.42;
+#  • CropNitrogenConcentrationMaximum is defined with a = 6.49 and b = 0.44;
+crop_nitrogen_concentration <- function(CropBiomass, a, b) {
+  max <- a * CropBiomass ** (-b)
+  return ( min(a,max) )
+}   
+
+# The critical crop nitrogen uptake is defined as the minimum nitrogen uptake necessary to achieve maximum biomass accumulation.
+# NitrogenDemandt = CropNitrogenConcentrationCriticalt × CropBiomasst 
+nitrogen_demand <- function(CropNitrogenConcentrationCritical, CropBiomass) {
+  return (CropNitrogenConcentrationCritical * CropBiomass)
+}
+
+# Nitrogen stress index (Nitrogen Nutrition Index, NNI, see Lemaire and Meynard, 1997),
+# is based on the ratio of actually absorbed nitrogen (NitrogenSupply, kg ha-1) 
+# to the critical nitrogen amount needed to satisfy the demand (NNitrogenDemand, kg ha-1 ).
+# NitrogenStresst = NitrogenSupplyt/NitrogenDemandt = NNI 
+nitrogen_nutrition_index <- function(NitrogenSupply, NitrogenDemand) {
+  if (NitrogenDemand == 0) {
+    return (0)
+  }
+  return (NitrogenSupply/NitrogenDemand)
+}
+
+# The impact of nitrogen deficit on leaf expansion is a linear function of 
+# nitrogen stress index (Brisson et al., 2009).
+# NitrogenStressExpansiont = (1.75 × NNI − 0.75), if NNI > 0.6 ; else, 0.3
+nitrogen_stress_expansion <- function(NNI) {
+  if (NNI > 0.6) {
+    return (1.75 * NNI - 0.75)
+  } else {
+    return (0.3)
+  }
+}
+
+# The impact of nitrogen deficit on photosynthesis (RUE) is the ratio of daily nitrogen
+# uptake rate to the daily critical nitrogen amount needed to satisfy the demand.
+# NitrogenStressRUEt = NitrogenSupplyRatet/NitrogenDemandRatet
+nitrogen_stress_rue <- function(NitrogenSupplyRate, NitrogenDemandRate) {
+  if (NitrogenDemandRate == 0) {
+    return (0)
+  }
+  return (NitrogenSupplyRate/NitrogenDemandRate)
+}
+
+# Jenna note: I made this function up. It could be wrong!
+# Equation:
+# SoilNitrogenConcentration = (SoilNitrogen Content [kg N/ha soil])/(% water in soil * SoilDensity * Soil Depth* (10^8 cm2/ha) * (1 ha/10^10 mm2))
+# Final units should be kg Nitrogen / mm water
+soil_nitrogen_concentration <- function(SoilNitrogenContent,LayerDepth,
+                                        WaterContentTheta, SoilDensity){
+  if (LayerDepth < 30) {
+    LayerDepth <- 30
+  }
+  SoilWater <- (WaterContentTheta * SoilDensity * LayerDepth)
+  SoilWater_converted <- SoilWater * (10**8/10**10)
+  return (SoilNitrogenContent/SoilWater_converted)
+  
+}
+
+
+### LEAF ###x
+
+# Potential expansion or senescence rate of leaf i is a function of thermal time
+# and potential area of the leaf. 
+# LeafExpansionRate = (Tm − Tb ) × PotentialLeafArea_i × a × (exp(−a(ThermalTime−LeafExpansionTime_i)) /(1+exp(−a(ThermalTime−LeafExpansionTime_i))^2
+# LeafSenescenceRatei = (Tm−Tb)×LeafArea_i×a × (exp(−a(ThermalTime−LeafSenescenceTime_i)))/ (1+exp(−a(ThermalTime−LeafSenescenceTime_i)))^2
+#  with:
+#    • Tm = 25, mean air temperature (°C)
+#    • Tb = 4.8, base temperature (°C)
+#    • a = 0.01379
+leaf_expansion_rate <- function(Tm, PotentialLeafArea, ThermalTime, 
+                                LeafExpansionTime, Tb = 4.8, a = 0.01379){
+  temp_diff <- Tm - Tb
+  numerator <- exp(-a * (ThermalTime - LeafExpansionTime))
+  denom <-  (1 + (exp(-1 * (ThermalTime - LeafExpansionTime))))**2
+  return (temp_diff * PotentialLeafArea * a * (numerator/denom) )
+}
+
+leaf_senescence_rate <- function(Tm, PotentialLeafArea, ThermalTime, LeafSenescenceTime, 
+                                 Tb = 4.8, a = 0.01379) {
+  temp_diff <- Tm - Tb
+  numerator <- exp(-a * (ThermalTime - LeafSenescenceTime))
+  denom <-  (1 + (exp(-1 * (ThermalTime - LeafSenescenceTime))))**2
+  return (temp_diff * PotentialLeafArea * a * (numerator/denom) )
+}
+
+# Jenna note: below are redefined from SE's functions
+# Individual leaf expansion is impacted by water and nitrogen stress during leaf
+# longevity. Leaf senescence is only function of temperature. Active leaf area is the
+# difference between total and senescent leaf area.
+# Total Leaf Area
+# TotalLeafArea_it = ∫(LeafExpansionRate_it × WaterStressExpansion_t × NitrogenStressExpansion_t) dt
+total_leaf_area <- function(LeafExpansionRate, WaterStressExpansion, NitrogenStressExpansion) {
+  # All inputs are vectors of length t, where t is current time (timestep)
+  sum_prods <- LeafExpansionRate * LeafExpansionRate * NitrogenStressExpansion
+  return (sum_out)
+}
+
+total_leaf_area_discrete <- function(prev_TotalLeafArea, LeafExpansionRate, WaterStressExpansion, NitrogenStressExpansion) {
+  # Assumes TotalLeafArea is value at the previous timestep
+  # and all other variables are just their value at the current timestep
+  area_t <- LeafExpansionRate * WaterStressExpansion * NitrogenStressExpansion
+  return (prev_TotalLeafArea + area_t)
+}
+
+# Senescent Leaf Area
+# SenescentLeafArea_it = ∫(LeafSenescenceRate_it) dt
+senescent_leaf_area <- function(LeafSenescenceRate) {
+  # Assumes the input is vector of length t
+  return(sum(LeafSenescenceRate))
+}
+
+senescent_leaf_area_discrete <- function(prev_SenescentLeafArea, LeafSenescenceRate) {
+  # Assumes the SenescentLeafArea at the previous timestep
+  # and LeafSenescenceRate is the current rate for the current timestep
+  return(prev_SenescentLeafArea + LeafSenescenceRate)
+}
+
+# Plant Leaf Area
+# PlantLeafArea_t = Σ(TotalLeafArea_it - SenescentLeafArea_it) for i = 1 to LeafNumber
+plant_leaf_area <- function(TotalLeafArea, SenescentLeafArea) {
+  # Assumes inputs are vectors of length i, where i is the total number of leaves
+  return (TotalLeafArea - SenescentLeafArea)
+}
+
+### Leaf initiation parameters ### 
 initialize_leaf_generation <- function(n_possible_leaves = 500, Phyllotherm_1=76.43,Phyllotherm_7=16.34) {
   #default n_possible_leaves picked an arbitrary value for this... could adjust later if needed
   init_leaf_tt <- numeric(n_possible_leaves)
@@ -305,260 +362,9 @@ init_potential_leaf_area <- function(PotentialLeafNumber, PotentialLeafSize, Pot
 
 init_leaf_expansion_duration <- function(PotentialLeafNumber, PotentialLeafSize,
                                          PotentialLeafProfile,
-                                          a=153, b=851.3, c=0.78) {
+                                         a=153, b=851.3, c=0.78) {
   enumerated_leaf_numbers <- seq(1,PotentialLeafNumber)
   exponent=(-1*(enumerated_leaf_numbers - PotentialLeafProfile)**2)/((c*PotentialLeafNumber)**2)
   return (a+b*exp(exponent))
 }
-
-# Initialize vectors for things that have a value for each timepoints
-# May be clearer to put this in a dataframe? 
-CropBiomass <- numeric(harvest+1) #TODO: check length adjustment is correct
-RIE <- numeric(harvest+1)
-LAI <- numeric(harvest+1)
-PlantLeafArea <- numeric(harvest+1)
-
-TotalLeafArea <- numeric(harvest+1)
-SenescentLeafArea <- numeric(harvest+1)
-
-LeafExpansionRate <- numeric(harvest+1)
-LeafSenescenceRate <- numeric(harvest+1)
-
-WaterStress <- numeric(harvest+1)
-WaterStressExpansion <- numeric(harvest+1)
-WaterAvailable <- numeric(harvest+1)
-Evaporation <- numeric(harvest+1)
-Transpiration <- numeric(harvest+1)
-Drainage <- numeric(harvest+1)
-WaterTotal <- numeric(harvest+1)
-WaterDemand <- numeric(harvest+1)
-WaterStressConductance <- numeric(harvest+1)
-  
-NitrogenStressExpansion <- numeric(harvest+1)
-NitrogenSupply <- numeric(harvest+1)
-NitrogenDemand <- numeric(harvest+1)
-CropNitrogenConcentraionCritical <- numeric(harvest+1)
-NitrogenUptake <- numeric(harvest+1)
-NNI <- numeric(harvest+1) # not sure if this is necessary to save? 
-SoilNitrogenConcentration <- numeric(harvest+1)
-
-PAR <- numeric(harvest+1)
-RUE <- numeric(harvest+1)
-
-WaterStressPhenology <- numeric(harvest+1)
-ThermalTime <- numeric(harvest+1)
-ThermalStressRUE <- numeric(harvest + 1)
-RelativeWaterContent <- numeric(harvest + 1)
-WaterContentTheta <- numeric(harvest + 1)
-
-CropYield <- numeric(harvest+1)
-
-### Define other functions to process inputs
-days_since_water_input <- function(rainfall, irrigation, current_x) {
-  curr_water_input <- rainfall+irrigation
-  if (curr_water_input <= 4) {
-    return (current_x + 1)
-  } else {
-    return (0)
-  }
-}
-### end functions
-
-# Connecting functions, will need to import most functions from sarah elizabeth
-# harvest = final_day + 1
-for (t in 2:harvest) {
-  
-  # Calc RIE
-  # Water stress
-  x <- days_since_water_input(Rainfall[t], Irrigation[t],x) # should be number of days since last water input
-  WaterStressEvaporation <- water_stress_evaporation(x, Rainfall[t], Irrigation[t]) #NDY some function to calc this, will need to look more later
-  Evaporation[t] <- evaporation(RIE[t], PET[t], WaterStressEvaporation) #RIE defined below, may have to move this up
-  WaterDemand[t] <- water_demand(RIE[t], PET[t]) # NDY
-  WaterStressConductance[t] <- water_stress_conductance(WaterStress[t]) #NDY
-  Transpiration[t] <- transpiration(WaterDemand[t], WaterStressConductance[t]) # NDY
-  WaterAvailable[t] <- water_available(Rainfall[t],Irrigation[t],Evaporation[t],
-                                       Transpiration[t]) # NDY . don't actually need drainage in this function. BUT, add if statment, cannot exceed SoilWaterCapcity_fc
-  # Add something here to calcualte the gravimetric water content at the time
-  area <- ()
-  WaterContentTheta[t] <- water_content_theta(WaterAvailable[t], area)
-  RelativeWaterContent[t] <- relative_water_content(WaterContentTheta[t]) # NDY
-  
-  Drainage[t] <- drainage(WaterAvailable[t], SoilWaterCapacity_fc) # did not see this defined in the documentation
-  RootDepth[t] <- root_depth(RootGrowthRate, T_m[t], RootDepthLimit)
-  WaterTotal[t] <- water_total(RootDepth[t], SoilWaterCapacity_available_water, SoilDensity, StoneContent) # NDY
-  WaterStress[t] <- water_stress(WaterAvailable[t], WaterTotal[t]) # NDY
-  WaterStressExpansion[t] <- water_stress_expansion(WaterStress[t]) # NDY
-  
- 
-
-  TranspirationRate[t] <- Transpiration[t] # using same logic as other places
-  Leaching[t] <- Drainage[t] * SoilNitrogenConcentration[t] #not defined in documentation, depends on drainage (also not defined)
-  DenitrificationRate <- denitrification_rate(Tm) # NDY
-  Denitrification[t] <- DenitrificationRate[t] * 1
-  
-  # Mineralization
-  WaterStressMineralization[t] <- water_stress_mineralization(RelativeWaterContent[t])
-  ThermalStressMineralization[t] <- thermal_stress_mineralization(Tm) 
-  MineralizationRate[t] <- mineralization_rate(PotentialMineralizationRate,
-                                               WaterStressMineralization,
-                                               ThermalStressMineralization[t]) # NDY
-  Mineralization[t] <- MineralizationRate[t] * 1 # check with other rate things 
-  
-  # Nitrogen stress
-  SoilNitrogenContent[t] <- soil_nitrogen_content(Fertilization[t],
-                              Mineralization[t],Leaching[t], Denitrification[t],
-                              NitrogenUptake[t]) # NDY
-
-  SoilNitrogenConcentration[t] <- soil_nitrogen_concentration(SoilNitrogenContent[t],RootDepth[t],
-                                                              WaterContentTheta[t], SoilDensity) # NDY , see jenna_notes
-  
-  NitrogenSupplyRate[t] <- nitrogen_uptake_rate(TranspirationRate[t], SoilNitrogenConcentration[t]) #NDY , same thing as nitrogen update rate
- 
-  # Same as NitrogenUptake, no functions for this in the documentation
-  # Given because we look at one day at a time, the rate per day can
-  # be multiplied by the number of days we are looking at (1) to get the 
-  # nitrogen supply/uptake for that day
-  NitrogenSupply[t] <- NitrogenSupplyRate[t] * 1 # this is the same thing as nitrogen uptake
-  
-  CropNitrogenConcentrationCritical[t] <- crop_nitrogen_concentration(CropBiomass[t], a=4.53, b=0.42) #NDY, assuming crop nitrogen conc calcs all by one function
-  NitrogenDemand[t] <- nitrogen_demand(CropNitrogenConcentrationCritical[t], CropBiomass[t]) #NDY
-  NNI <- nitrogen_nutrition_index(NitrogenSupply[t], NitrogenDemand[t]) # NDY
-  NitrogenStressExpansion[t] <- nitrogen_stress_expansion(NNI) # NDY
-  
-  # Leaf stuff
-  # Check: will next leaf grow?
-  if (ThermalTime[t] >= LeafInitiationTime[LeafNumber + 1]) {
-    LeafNumber += 1
-  }
-  # Calculate these parameters for each existing leaf
-  # I think total leaf area and senescent leaf area can be re-calc each time
-  leaf_data <- data.frame(
-    LeafSenescenceRate <- numeric(LeafNumber),
-    SenescentLeafArea <- numeric(LeafNumber),
-    
-    LeafExpansionRate <- numeric(LeafNumber),
-    LeafExpansionTime <- numeric(LeafNumber),
-    
-    TotalLeafArea <- numeric(LeafNumber)
-  )
-  
-  for (i in 1:LeafNumber) {
-    leaf_data$LeafSenescenceRate[i] <- leaf_senescence_rate(ThermalTime, LeafSenescenceTime[i]) # fill in later
-    leaf_data$LeafExpansionRate[i] <- leaf_expansion_rate(Tm, PotentialLeafArea[i],
-                                        ThermalTime[t], LeafExpansionTime[i]) # NDY
-    leaf_data$SenescentLeafArea[i] <- senescent_leaf_area(LeafSenescenceRate[t])
-    leaf_data$TotalLeafArea[i] <- total_leaf_area(LeafExpansionRate[t], WaterStressExpansion, NitrogenStressExpansion, t) # review function for this, should just be the sum?
-  }
-  
-  # Do we need to pass in i, number of leaves? or is this deduced in the function?
-  PlantLeafArea[t] <- plant_leaf_area(leaf_data$TotalLeafArea, leaf_data$SenescentLeafArea)
-  LAI <- leaf_area_index(SowingDensity, PlantLeafArea[t])
-  
-  # Radiation stress
-  RIE[t] <- radiation_interception(LAI[t])
-  
-  ### End RIE for now
-  
-  # Calc PAR
-  PAR[t] <- PAR(Radiation[t]) # rename one of these to not have same name
-  
-  # Calc RUE
-  WaterStressPhenology[t] <- water_stress_phenology(WaterStressConductance[t])
-  ThermalTime[t] <- thermal_time(T_m[t], WaterStressPhenology[t])
-  
-  ThermalStressRUE[t] <- thermal_stress_rue(Tm[t]) # NDY
-  
-  # NDY , same formulas for water stress expansion, water stress RUE, water stress
-  # leaf expansion, and water stress transpiration, according to SUNFLO pub.
-  WaterStressRUE[t] <- water_stess_expansion(WaterStress[t]) 
-  
-  # Below is not defined, but if we assume that the nitrogen demand 
-  NitrogenDemandRate[t] <- NitrogenDemand[t] 
-  NitrogenStressRUE[t] <- nitrogen_stress_rue(NitrogenSupplyRate[t], NitrogenDemandRate[t]) # NDY Not well defined. ratio of daily update rate to daily demand 
-  
-  # Some of the below thermal time values should be constants I think, 
-  # May need to modify function definition
-  RUE[t] <- radiation_use_efficiency(ThermalTime[t], ThermalStressRUE[t], 
-                                     WaterStressRUE[t], NitrogenStressRUE[t])
-  
-  # Final output, crop yield for entire harvest
-  CropBiomass[t+1] <- crop_biomass(RIE[t], PAR[t], RUE[t], CropBiomass[t])
-  CropYield[t] <- crop_yeild(CropBiomass[t],HarvestIndex[t])
-}
-
-CropYield_harvest <- crop_yeild(CropBiomass[harvest], HarvestIndex[harvest]) #note: fix spelling
-
-# Expected outputs according to parameters_default sheet:
-# ! before things that we do not have yet
-# X before things we have
-# ? for things I am not sure about how to calculate
-'''
-Calc from the climate file, as vectors: 
-! TemperatureAirMin
-! TemperatureAirMax
-! TemperatureAirMean
-! Radiation
-! PET
-! Rainfall
-
-Below are all from the model:
-X ThermalTime
-! PhenoStage - not sure about this one, can it be calculated in post or is it necessary for steps of the model??? 
-X WaterStress
-? WaterStressConductance (transpiration)
-? WaterStressConductance (photosynthesis) - different from above?
-! WaterSupplyDemandRatio - should be easy to calc: water stress divided by water demand? 
-! ThermalStressRUE - may need to include as part of RUE calculation
-! NitrogenAbsorbed - might just be the sum of NitrogenSupply
-X NitrogenNutritionIndex (this is the NNI)
-! NitrogenStressRUE - may need to include as part of RUE calculation 
-X LAI
-X RIE
-X RUE
-X CropBiomass
-
-Calc at end (?): 
-X CropYield 
-X OilContent - below, check because missing some vars in SE-defined function
-'''
-
-# Calc additional outputs 
-# Other parameters may be set as constants ? - may need to rewrite function 
-# Also requires nitrogen absorbed
-NitrogenAbsorbed <- sum(NitrogenSupply) # I think this is correct?
-OilContent <- oil_content(PotentialOilContent, NNI, TemperatureAirMean, RUE, LAI)
-
-# Save into output dataframe
-output <- data.frame(
-  TemperatureAirMin = TemperatureAirMin,
-  TemperatureAirMax = TemperatureAirMax,
-  TemperatureAirMean = Tm,
-  Radiation = Radiation,
-  PET = PET,
-  Rainfall = Rainfall,
-  ThermalTime = ThermalTime,
-  #PhenoStage
-  WaterStress = WaterStress,
-  WaterStressConductance = WaterStressConductance,
-  WaterStressRUE = WaterStressRUE,
-  WaterSupplyDemandRatio <- WaterAvailable/WaterDemand, # Not 100% sure this is correct formula
-  ThermalStressRUE <- ThermalStressRUE, 
-  NitrogenAbsorbed <- NitrogenAbsorbed,
-  NitrogenNutritionIndex <- NNI,
-  NitrogenStressRUE <- NitrogenStressRUE,
-  LAI = LAI,
-  RIE = RIE,
-  RUE = RUE,
-  CropBiomass = CropBiomass,
-  CropYield = CropYield,
-  OilContent = OilContent
-)
-
-
-
-
-
-
-
-
 

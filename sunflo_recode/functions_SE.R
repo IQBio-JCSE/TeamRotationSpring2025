@@ -69,7 +69,8 @@ crop_biomass <- function(PAR, RIE, RUE, previous_biomass) {
 # (PAR) is 48% of total radiation (Monteith, 1977) <-- citation unsure about
 # PAR_t = Radiation_t  × 0.48
 
-PAR <- function(radiation) {
+# Jenna : renamed fxn to avoid confusion with variable
+photosynthetically_active_radiation <- function(radiation) {
   return(radiation * 0.48)
 }
 
@@ -127,27 +128,29 @@ radiation_interception <- function(LAI, k = 0.9) {
   return(1 - exp(-k * LAI))
 }
 
-# TODO LeafArea PlantLeafArea ----------------------------------------------------
-# Individual leaf expansion is impacted by water and nitrogen stress during leaf
-# longevity. Leaf senescence is only function of temperature. Active leaf area is the
-# difference between total and senescent leaf area.
-# Total Leaf Area
-# TotalLeafArea_it = ∫(LeafExpansionRate_it × WaterStressExpansion_t × NitrogenStressExpansion_t) dt
-total_leaf_area <- function(leaf_expansion_rate, water_stress_expansion, nitrogen_stress_expansion, time_steps) {
-  return(sum(leaf_expansion_rate * water_stress_expansion * nitrogen_stress_expansion * time_steps))
-}
+# Jenna note: commenting these out for now to use definitions from other files
 
-# Senescent Leaf Area
-# SenescentLeafArea_it = ∫(LeafSenescenceRate_it) dt
-senescent_leaf_area <- function(leaf_senescence_rate, time_steps) {
-  return(sum(leaf_senescence_rate * time_steps))
-}
-
-# Plant Leaf Area
-# PlantLeafArea_t = Σ(TotalLeafArea_it - SenescentLeafArea_it) for i = 1 to LeafNumber
-plant_leaf_area <- function(total_leaf_area, senescent_leaf_area, leaf_number) {
-  return(sum((total_leaf_area - senescent_leaf_area)[1:leaf_number]))
-}
+# # TODO LeafArea PlantLeafArea ----------------------------------------------------
+# # Individual leaf expansion is impacted by water and nitrogen stress during leaf
+# # longevity. Leaf senescence is only function of temperature. Active leaf area is the
+# # difference between total and senescent leaf area.
+# # Total Leaf Area
+# # TotalLeafArea_it = ∫(LeafExpansionRate_it × WaterStressExpansion_t × NitrogenStressExpansion_t) dt
+# total_leaf_area <- function(leaf_expansion_rate, water_stress_expansion, nitrogen_stress_expansion, time_steps) {
+#   return(sum(leaf_expansion_rate * water_stress_expansion * nitrogen_stress_expansion * time_steps))
+# }
+# 
+# # Senescent Leaf Area
+# # SenescentLeafArea_it = ∫(LeafSenescenceRate_it) dt
+# senescent_leaf_area <- function(leaf_senescence_rate, time_steps) {
+#   return(sum(leaf_senescence_rate * time_steps))
+# }
+# 
+# # Plant Leaf Area
+# # PlantLeafArea_t = Σ(TotalLeafArea_it - SenescentLeafArea_it) for i = 1 to LeafNumber
+# plant_leaf_area <- function(total_leaf_area, senescent_leaf_area, leaf_number) {
+#   return(sum((total_leaf_area - senescent_leaf_area)[1:leaf_number]))
+# }
 
 # Explanation:
 # total_leaf_area:
@@ -182,15 +185,18 @@ plant_leaf_area <- function(total_leaf_area, senescent_leaf_area, leaf_number) {
 # Radiation Use Efficiency (RUE) ----------------------------------------------
 # piecewise function computes potential RUE based on thermal time and abiotic stresses
 # increase in energy cost of biomass produced (oil content), exponential decrease of RUE during grain filling
-radiation_use_efficiency <- function(thermal_time, thermal_time_flowering, thermal_time_maturity, thermal_time_senescence, 
+radiation_use_efficiency <- function(thermal_time, thermal_stress_rue, water_stress_rue, nitrogen_stress_rue,
+                                     thermal_time_flowering = phenology_parameters$ThermalTimeFlowering, 
+                                     thermal_time_maturity = phenology_parameters$ThermalTimeMaturity, 
+                                     thermal_time_senescence = phenology_parameters$ThermalTimeSenescence, 
                                      r0 = 1.0, #  initial RUE during vegetative stage
                                      rmax = 3.0, # maximum RUE during flowering,
                                      rd = 4.5, # rate of decrease of RUE during reproduction
                                      rmin = 0.02, # minimum RUE during reproduction end/senescence
                                      a = 0.015, # final RUE
-                                     b = 4.5, # rate of decrease of RUE during senescence,
+                                     b = 4.5 # rate of decrease of RUE during senescence,
                                      # TODO abiotic stresses
-                                     thermal_stress_rue = 1, water_stress_rue = 1, nitrogen_stress_rue = 1) {
+                                     ) {
   # Compute potential RUE based on thermal time
   potential_rue <- if (thermal_time < 300) {
     r0
@@ -305,34 +311,38 @@ leaf_area_parameters <- list(
   PotentialGrowthSlope = 0.0 # Rate of leaf growth and senescence processes (-)
 )
 
-# Leaf Initiation Time --------------------------------------------------------
-# Computes the thermal time for leaf initiation based on leaf rank
-# TODO check is i = leaf_rank
-leaf_initiation_time <- function(leaf_rank, phyllotherm_1 = 71.4, phyllotherm_7 = 16.3, potential_leaf_number = 29.0) {
-  if (leaf_rank <= 6) {
-    return(leaf_rank * phyllotherm_1)
-  } else if (leaf_rank <= potential_leaf_number) {
-    return((leaf_rank - 5) * phyllotherm_7 + 6 * phyllotherm_1)
-  } else { # TODO is this needed?
-    stop("Leaf rank exceeds potential leaf number.")
-  }
-}
 
-# Leaf Expansion Time ---------------------------------------------------------
-# Computes  thermal time for leaf expansion based on leaf initiation time
-leaf_expansion_time <- function(leaf_initiation_time, a = 0.01379) {
-  return(leaf_initiation_time + (1 / a))
-}
+# Jenna note: commenting these out for now to use definitions from other files
+# 
+# # Leaf Initiation Time --------------------------------------------------------
+# # Computes the thermal time for leaf initiation based on leaf rank
+# # TODO check is i = leaf_rank
+# leaf_initiation_time <- function(leaf_rank, phyllotherm_1 = 71.4, phyllotherm_7 = 16.3, potential_leaf_number = 29.0) {
+#   if (leaf_rank <= 6) {
+#     return(leaf_rank * phyllotherm_1)
+#   } else if (leaf_rank <= potential_leaf_number) {
+#     return((leaf_rank - 5) * phyllotherm_7 + 6 * phyllotherm_1)
+#   } else { # TODO is this needed?
+#     stop("Leaf rank exceeds potential leaf number.")
+#   }
+# }
+# 
+# # Leaf Expansion Time ---------------------------------------------------------
+# # Computes  thermal time for leaf expansion based on leaf initiation time
+# leaf_expansion_time <- function(leaf_initiation_time, a = 0.01379) {
+#   return(leaf_initiation_time + (1 / a))
+# }
+# 
+# # TODO Leaf Senescence Time --------------------------------------------------------
+# # Computes the thermal time for leaf senescence based on leaf expansion time
+# leaf_senescence_time <- function(leaf_expansion_time, 
+#                                   potential_leaf_duration_min = 153.0, 
+#                                  potential_leaf_duration_max = 851.3, 
+#                                  potential_leaf_duration_width = 0.8) {
+#   return(leaf_expansion_time + potential_leaf_duration_min + 
+#            (potential_leaf_duration_max - potential_leaf_duration_min) / (1 + exp(-potential_leaf_duration_width)))
+# }
 
-# TODO Leaf Senescence Time --------------------------------------------------------
-# Computes the thermal time for leaf senescence based on leaf expansion time
-leaf_senescence_time <- function(leaf_expansion_time, 
-                                  potential_leaf_duration_min = 153.0, 
-                                 potential_leaf_duration_max = 851.3, 
-                                 potential_leaf_duration_width = 0.8) {
-  return(leaf_expansion_time + potential_leaf_duration_min + 
-           (potential_leaf_duration_max - potential_leaf_duration_min) / (1 + exp(-potential_leaf_duration_width)))
-}
 
 # ThermalStressRUE ------------------------------------------------------------
 # impact of temperature on photosynthesis is modeled with a piecewise linear
