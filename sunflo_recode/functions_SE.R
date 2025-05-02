@@ -205,14 +205,17 @@ radiation_use_efficiency <- function(thermal_time, thermal_stress_rue, water_str
   } else if (thermal_time < thermal_time_maturity) {
     rmax
   } else if (thermal_time < thermal_time_senescence) {
-    a * exp(b * (1 - (thermal_time - thermal_time_maturity) / (thermal_time_senescence - thermal_time_maturity)))
+    a * exp(b * (1 - ((thermal_time - thermal_time_maturity) / (thermal_time_maturity - thermal_time_senescence))))
   } else {
     0
   }
   
   # TODO check on this
   # Adjust RUE based on abiotic stresses
-  rue <- potential_rue * thermal_stress_rue * water_stress_rue * nitrogen_stress_rue
+  env_factors <- c(thermal_stress_rue,water_stress_rue,nitrogen_stress_rue)
+  env_stress <- prod(env_factors[env_factors != 0])
+  rue <- potential_rue * env_stress
+  # rue <- potential_rue * thermal_stress_rue * water_stress_rue * nitrogen_stress_rue
   
   return(rue)
 }

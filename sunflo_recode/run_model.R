@@ -33,7 +33,7 @@ harvest <- nrow(climate_data)# Length of harvest, predefined and calculated base
 Fertilization <- numeric(harvest+1) # predefined values 
 #Fertilization[c(fert_days)] <- c(fert_values)
 
-water_days <- c(95,105) # estimating number of days until flowering for H. annuus
+water_days <- c(70,80) # estimating number of days until flowering for H. annuus
 water_values <- c(60,60)
 Irrigation <- numeric(harvest+1) #from the climate data file MAYBE? no, from ote
 Irrigation[c(water_days)] <- c(water_values)
@@ -65,10 +65,9 @@ x <- 0 #days since last water input
 LeafInitiationTime <- initialize_leaf_generation(PotentialLeafNumber)
 LeafNumber <- 0 # starts at 0 and increases. used to search LeafInitiationTimes vector
 LeafExpansionTime <- init_leaf_expansion_time(LeafInitiationTime)
-LeafExpansionDuration <- init_leaf_expansion_duration(PotentialLeafNumber, PotentialLeafSize,
-                                         PotentialLeafProfile)
+LeafExpansionDuration <- init_leaf_expansion_duration(PotentialLeafNumber, PotentialLeafProfile)
 LeafSenescenceTime <- LeafExpansionTime + LeafExpansionDuration   
-PotentialLeafArea <- init_potential_leaf_area(LeafNumber, PotentialLeafSize, PotentialLeafProfile) 
+PotentialLeafArea <- init_potential_leaf_area(PotentialLeafNumber, PotentialLeafSize, PotentialLeafProfile) 
 
 SoilWaterCapacity_wp <- soil_parameters$SoilWaterCapacity_Wilting_30_Root # wilting point, same for all depths
 SoilWaterCapacity_fc <- soil_parameters$SoilWaterCapacity_30_Root #Field capacity, same for all depths for default val
@@ -132,7 +131,9 @@ SoilNitrogenContent[1] <- 20 # As defined in docs, p 14. Using the larger value 
 WaterContentTheta <- numeric(harvest + 1) 
 WaterContentTheta[1] <- SoilWaterCapacity_fc # according to paper, this is usually equal to field capactiy
 WaterAvailable <- numeric(harvest+1)
-WaterAvailable[1] <- (WaterContentTheta[1]/100) * 30 * SoilDensity # assuming no roots, just consider the surface layer of soil (first 30 mm)
+WaterAvailable[1] <- convert_gravimetric_to_mm_water(WaterContentTheta[1]) # assuming no roots, just consider the surface layer of soil (first 30 mm)
+SoilNitrogenConcentration[1] <- soil_nitrogen_concentration(SoilNitrogenContent[1],
+                                                 WaterAvailable[1])            
 
 ### Define other functions to process inputs
 days_since_water_input <- function(rainfall, irrigation, current_x) {
@@ -144,6 +145,7 @@ days_since_water_input <- function(rainfall, irrigation, current_x) {
   }
 }
 ### end functions
+WaterAvailable_beforedrainage <- numeric(harvest + 1)
 
 # Connecting functions, will need to import most functions from sarah elizabeth
 for (t in 2:100) {
@@ -156,12 +158,12 @@ for (t in 2:100) {
   WaterDemand[t] <- water_demand(RIE[t-1], PET[t])
   WaterStressConductance[t] <- water_stress_conductance(WaterStress[t-1]) #NDY
   Transpiration[t] <- transpiration(WaterDemand[t], WaterStressConductance[t]) # NDY
-  WaterAvailable_beforedrainage <- water_available_before_drain(WaterAvailable[t-1], Rainfall[t],Irrigation[t],Evaporation[t], # NDY . don't actually need drainage in this function. BUT, add if statment, cannot exceed SoilWaterCapcity_fc
+  WaterAvailable_beforedrainage[t] <- water_available_before_drain(WaterAvailable[t-1], Rainfall[t],Irrigation[t],Evaporation[t], # NDY . don't actually need drainage in this function. BUT, add if statment, cannot exceed SoilWaterCapcity_fc
                                        Transpiration[t]) 
   
-  RootDepth[t] <- root_depth(RootGrowthRate, T_m[t], RootDepthLimit)
-  Drainage[t] <- drainage(WaterAvailable_beforedrainage, RootDepth[t], SoilWaterCapacity_fc) # NDY , did not see this defined in the documentation
-  WaterAvailable[t] <- WaterAvailable_beforedrainage - Drainage[t]
+  RootDepth[t] <- root_depth(RootDepth[t-1], RootGrowthRate, T_m[t], RootDepthLimit)
+  Drainage[t] <- drainage(WaterAvailable_beforedrainage[t], RootDepth[t], SoilWaterCapacity_fc) # NDY , did not see this defined in the documentation
+  WaterAvailable[t] <- WaterAvailable_beforedrainage[t] - Drainage[t]
   
   WaterContentTheta[t] <- water_content_theta(WaterAvailable[t], RootDepth[t]) # NDY
   RelativeWaterContent[t] <- relative_water_content(WaterContentTheta[t], SoilWaterCapacity_wp, SoilWaterCapacity_fc) # NDY
@@ -174,7 +176,7 @@ for (t in 2:100) {
   ThermalTime[t] <- thermal_time_discrete(ThermalTime[t-1], T_m[t], WaterStressPhenology[t])
  
   TranspirationRate <- Transpiration[t] # using same logic as other places
-  Leaching[t] <- Drainage[t] * SoilNitrogenConcentration[t] #not defined in documentation, depends on drainage (also not defined)
+  Leaching[t] <- Drainage[t] * SoilNitrogenConcentration[t-1] #not defined in documentation, depends on drainage (also not defined)
   DenitrificationRate <- denitrification_rate(T_m[t]) # NDY
   Denitrification[t] <- DenitrificationRate * 1
   
@@ -189,12 +191,13 @@ for (t in 2:100) {
   # Nitrogen stress
   SoilNitrogenContent[t] <- soil_nitrogen_content(SoilNitrogenContent[t-1], Fertilization[t], # NDY
                               Mineralization[t],Leaching[t], Denitrification[t],
-                              NitrogenUptake[t]) 
+                              NitrogenSupply[t]) 
 
-  SoilNitrogenConcentration[t] <- soil_nitrogen_concentration(SoilNitrogenContent[t],RootDepth[t],
-                                                              WaterContentTheta[t], SoilDensity) # NDY , see jenna_notes
+  SoilNitrogenConcentration[t] <- soil_nitrogen_concentration(SoilNitrogenContent[t], WaterAvailable[t])
+  # SoilNitrogenConcentration[t] <- soil_nitrogen_concentration(SoilNitrogenContent[t-1],RootDepth[t],
+  #                                                             WaterContentTheta[t], SoilDensity) # NDY , see jenna_notes
   
-  NitrogenSupplyRate[t] <- nitrogen_uptake_rate(TranspirationRate, SoilNitrogenConcentration[t]) #NDY , same thing as nitrogen update rate
+  NitrogenSupplyRate[t] <- nitrogen_uptake_rate(TranspirationRate, SoilNitrogenConcentration[t-1]) #NDY , same thing as nitrogen update rate
  
   # Same as NitrogenUptake, no functions for this in the documentation
   # Given because we look at one day at a time, the rate per day can
@@ -205,7 +208,7 @@ for (t in 2:100) {
   # Values for a and b below are based on critical N concentration
   CropNitrogenConcentrationCritical[t] <- crop_nitrogen_concentration(CropBiomass[t-1], a=4.53, b=0.42) # NDY, assuming crop nitrogen conc calcs all by one function
   NitrogenDemand[t] <- nitrogen_demand(CropNitrogenConcentrationCritical[t], CropBiomass[t-1]) #NDY
-  NNI[t] <- nitrogen_nutrition_index(NitrogenSupply[t], NitrogenDemand[t]) # NDY
+  NNI[t] <- I_nitrogen_nutrition_index(NitrogenSupply[t], NitrogenDemand[t]) # NDY
   NitrogenStressExpansion[t] <- nitrogen_stress_expansion(NNI[t]) # NDY
   
   # Leaf growth
@@ -227,11 +230,13 @@ for (t in 2:100) {
     
     # For each leaf, update its total leaf area and senescent leaf area
     for (i in 1:LeafNumber) {
-      leaf_data$LeafSenescenceRate[i] <- leaf_senescence_rate(T_m[t], PotentialLeafArea[i], ThermalTime[t], LeafSenescenceTime[i]) # NDY, fill in later
       leaf_data$LeafExpansionRate[i] <- leaf_expansion_rate(T_m[t], PotentialLeafArea[i], # NDY
                                           ThermalTime[t], LeafExpansionTime[i]) 
-      SenescentLeafArea[i,t] <- senescent_leaf_area_discrete(SenescentLeafArea[i,t-1],LeafSenescenceRate[i]) 
-      TotalLeafArea[i,t] <- total_leaf_area_discrete(TotalLeafArea[i,t-1], LeafExpansionRate[i], WaterStressExpansion[t], NitrogenStressExpansion[t]) 
+      
+      TotalLeafArea[i,t] <- total_leaf_area_discrete(TotalLeafArea[i,t-1], leaf_data$LeafExpansionRate[i], WaterStressExpansion[t], NitrogenStressExpansion[t])
+      
+      leaf_data$LeafSenescenceRate[i] <- leaf_senescence_rate(T_m[t], TotalLeafArea[i,t], ThermalTime[t], LeafSenescenceTime[i]) # NDY, fill in later
+      SenescentLeafArea[i,t] <- senescent_leaf_area_discrete(SenescentLeafArea[i,t-1],leaf_data$LeafSenescenceRate[i]) 
     }
   
     PlantLeafArea[t] <- plant_leaf_area(TotalLeafArea[,t], SenescentLeafArea[,t]) # review existing function
@@ -243,7 +248,7 @@ for (t in 2:100) {
   RIE[t] <- radiation_interception(LAI[t])
   
   # Calc PAR
-  PAR[t] <- photosynthetically_active_radiation(Radiation[t]) # rename this from PAR in SE's funtions
+  PAR[t] <- photosynthetically_active_radiation(Radiation[t]) # rename this from PAR in SE's functions
   
   # Calc RUE
   ThermalStressRUE[t] <- thermal_stress_rue(T_m[t]) # NDY
@@ -253,8 +258,8 @@ for (t in 2:100) {
   WaterStressRUE[t] <- water_stress_expansion(WaterStress[t]) # NDY
   
   # Below is not defined, but if we assume that the nitrogen demand 
-  NitrogenDemandRate <- NitrogenDemand[t] 
-  NitrogenStressRUE[t] <- nitrogen_stress_rue(NitrogenSupplyRate[t], NitrogenDemandRate) # NDY Not well defined. ratio of daily update rate to daily demand 
+  NitrogenDemandRate[t] <- NitrogenDemand[t] 
+  NitrogenStressRUE[t] <- nitrogen_stress_rue(NitrogenSupplyRate[t], NitrogenDemandRate[t]) # NDY Not well defined. ratio of daily update rate to daily demand 
   
   # Some of the below thermal time values should be constants I think, 
   # May need to modify function definition
@@ -262,7 +267,7 @@ for (t in 2:100) {
                                      WaterStressRUE[t], NitrogenStressRUE[t])
   
   # Final output, crop yield for entire harvest
-  CropBiomass[t] <- crop_biomass(RIE[t], PAR[t], RUE[t], CropBiomass[t-1])
+  CropBiomass[t] <- crop_biomass(PAR[t], RIE[t],RUE[t], CropBiomass[t-1])
   #CropYield[t] <- crop_yeild(CropBiomass[t],HarvestIndex[t])
 }
 
@@ -289,7 +294,7 @@ NitrogenAbsorbed <- sum(NitrogenSupply) # I think this is correct?
 #   WaterStress = WaterStress,
 #   WaterStressConductance = WaterStressConductance,
 #   WaterStressRUE = WaterStressRUE, # note this is also WaterStressConductance from photosynthesis according to docs
-#   WaterSupplyDemandRatio <- WaterAvailable/WaterDemand, # Not 100% sure this is correct formula
+#   WaterSupplyDemandRatio <- WaterDemand/WaterAvailable, # Not 100% sure this is correct formula
 #   ThermalStressRUE <- ThermalStressRUE, 
 #   NitrogenAbsorbed <- NitrogenAbsorbed,
 #   NitrogenNutritionIndex <- NNI,

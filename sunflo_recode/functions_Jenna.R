@@ -16,12 +16,13 @@ thermal_time_discrete <- function(prev_ThermalTime, T_m, WaterStressPhenology, T
 #  (RootGrowthRate × Tm, if RootDepth < RootDepthLimit RootDepthLimit, else
 #    • RootGrowthRate = 0.7, root elongation rate (mm °Cd-1)
 #    • RootDepthMax = 1800, maximum root depth (mm)
-root_depth <- function(Tm, RootGrowthRate = 0.7, RootDepthLimit = 1800) {
-  calc_root_depth <- RootGrowthRate * Tm
-  if (calc_root_depth > RootDepthLimit) {
+root_depth <- function(prev_RootDepth, Tm, RootGrowthRate = 0.7, RootDepthLimit = 1800) {
+  growth <- RootGrowthRate * Tm
+  curr_depth <- prev_RootDepth + growth
+  if (curr_depth > RootDepthLimit) { # no further growth, max reached
     return (RootDepthLimit)
   } else {
-    return (calc_root_depth)
+    return (curr_depth)
   }
 }
 
@@ -41,31 +42,33 @@ water_available_before_drain <- function(prev_WaterAvailable, Rainfall,Irrigatio
   return (prev_WaterAvailable + Rainfall + Irrigation - Evaporation - Transpiration)
 }
 
-# Units for depth are assumed to be cm. Units for density g/cm^3
-convert_mmwater_to_gravimetric <- function(mm_water, soil_depth, soil_density) {
-  return(mm_water*soil_depth*soil_density*100)
-}
 
 # Units for water assume to be %. Units for density g/cm^3
-convert_gravimetric_to_mm_water <- function(water_theta, soil_depth, soil_density=1.3) {
-  depth <- max(30,soil_depth)
-  return((water_theta/100)*depth*soil_density)
+# depth units assumed to be mm
+convert_gravimetric_to_mm_water <- function(water_theta, soil_depth=300, soil_density=1.3) {
+  depth <- max(300,soil_depth)
+  return((water_theta/100)*(depth)*soil_density)
 }
 
 # Jenna note: check that this function is accurately calculating the %
+# WaterAvailable units assumed to be mm
+# Root or soil depth units assumed to be mm
 # * 100 at end to convert back to a percent
-water_content_theta <- function(WaterAvailable, RootDepth, SoilDepth_surface_layer=30,
+water_content_theta <- function(WaterAvailable, RootDepth, SoilDepth_surface_layer=300,
                                 SoilDensity=1.3) {
-  depth <- max(30,RootDepth)
+  depth <- max(300,RootDepth)
   return (WaterAvailable/(depth *SoilDensity) * 100)
 }
 
 # Jenna note: this is not defined explicity in the paper or the documentation
 drainage <- function(WaterAvailable, RootDepth, SoilWaterCapacity_fc) {
-  depth <- max(30,RootDepth)
-  max_water <- convert_gravimetric_to_mm_water(SoilWaterCapacity_fc, RootDepth)
+  depth <- max(300,RootDepth)
+  max_water <- convert_gravimetric_to_mm_water(SoilWaterCapacity_fc, depth)
   #percent_water <- water_content_theta(WaterAvailable,RootDepth) # Convert water to cm
   difference <- (WaterAvailable - max_water)
+  # print(depth)
+  # print(max_water)
+  # print(WaterAvailable)
   if (difference <= 0) {
     return (0)
   } else {
@@ -78,6 +81,19 @@ drainage <- function(WaterAvailable, RootDepth, SoilWaterCapacity_fc) {
 evaporation <- function(RIE, PET, WaterStressEvaporation) {
  return ((1 - RIE) * PET * WaterStressEvaporation) 
 }
+
+# From the paper:
+# Water loss due to plant transpiration [Eqs. (15) and (16)] is a function of 
+# potential transpiration rate [Eq. (13)], water effect on transpiration [Eq. (19)] 
+# and root distribution over the two first layers (fR). This distribution is 
+# made proportional to the thickness of each soil layer [Eq. (14)].
+# dPTR=Kc×ETP×RIE , where Kc=1.2 [eq 13] -
+# fR = zC1/(zC1 + zC2) [eq 14]
+# dTRC1=fR×dPTR×WaterStressConductanceₜ if(zR>zC1) else dPTR×W.TR [eq. 15] - Layer 1 transpiration
+# dTRC2=(1−fR)×dPTR×W.TR if(zR>zC1) else0 (16) - Layer 2 transpiration
+# transpiration <- function(RIE, PET, ) {
+#   
+# }
 
 # WaterStressEvaporation = square_root(x + 1) − square_root(x)
 # The relative soil evaporation is based on Ritchie (1981) two-stage model, 
@@ -106,6 +122,9 @@ water_demand <- function(RIE, PET, K_c = 1.2) {
 # in the model.
 # WaterStresst = FTSWt = WaterAvailablet/WaterTotalt
 water_stress <- function(WaterAvailable, WaterTotal){
+  if (WaterTotal == 0) {
+    return (0)
+  }
   return(WaterAvailable/WaterTotal)
 }
 
@@ -171,7 +190,7 @@ relative_water_content <- function(theta, theta_wp, theta_fc) {
 # Leaching is the product of drained water (Drainage) and the nitrogen concentration from the soil layer concerned.
 # SoilNitrogenContentt = Fertilizationt + Mineralizationt − Leachingt − Denitrificationt − NitrogenUptaket
 soil_nitrogen_content <- function(prev_SoilNitrogenContent, Fertilization, Mineralization,Leaching, Denitrification, NitrogenUptake) {
-  return (SoilNitrogenContent + Fertilization + Mineralization - Leaching - Denitrification - NitrogenUptake)
+  return (prev_SoilNitrogenContent + Fertilization + Mineralization - Leaching - Denitrification - NitrogenUptake)
 } 
 
 # Nitrogen mineralization takes place in surface layer and is impacted by relative 
@@ -224,7 +243,17 @@ nitrogen_demand <- function(CropNitrogenConcentrationCritical, CropBiomass) {
 # is based on the ratio of actually absorbed nitrogen (NitrogenSupply, kg ha-1) 
 # to the critical nitrogen amount needed to satisfy the demand (NNitrogenDemand, kg ha-1 ).
 # NitrogenStresst = NitrogenSupplyt/NitrogenDemandt = NNI 
-nitrogen_nutrition_index <- function(NitrogenSupply, NitrogenDemand) {
+# Jenna note: according to the paper, this is the cumulative N absorbed. There is 
+# a second term called INNI, which is the instantaneous NNI
+nitrogen_nutrition_index <- function(NitrogenSupply_all, NitrogenDemand) {
+  # Here, NitrogenSupply is a vector for ALL timepoints
+  if (NitrogenDemand == 0) {
+    return (0)
+  }
+  return (sum(NitrogenSupply_all)/NitrogenDemand)
+}
+
+I_nitrogen_nutrition_index <- function(NitrogenSupply, NitrogenDemand) {
   if (NitrogenDemand == 0) {
     return (0)
   }
@@ -256,14 +285,25 @@ nitrogen_stress_rue <- function(NitrogenSupplyRate, NitrogenDemandRate) {
 # Equation:
 # SoilNitrogenConcentration = (SoilNitrogen Content [kg N/ha soil])/(% water in soil * SoilDensity * Soil Depth* (10^8 cm2/ha) * (1 ha/10^10 mm2))
 # Final units should be kg Nitrogen / mm water
-soil_nitrogen_concentration <- function(SoilNitrogenContent,LayerDepth,
-                                        WaterContentTheta, SoilDensity){
-  if (LayerDepth < 30) {
-    LayerDepth <- 30
+# soil_nitrogen_concentration <- function(SoilNitrogenContent,LayerDepth,
+#                                         WaterContentTheta, SoilDensity = 1.3){
+#   depth <- max(300, LayerDepth)
+#   SoilWater <- (WaterContentTheta * SoilDensity * LayerDepth)
+#   SoilWater_converted <- SoilWater * (10**8/10**10)
+#   if (SoilWater_converted == 0 ) {
+#     return (0)
+#   }
+#   return (SoilNitrogenContent/SoilWater_converted)
+# }
+
+# kg of Nitrogen per mm of water. Assumes the amount of nitrogen is 
+# distributed evenly across 1 ha, and that the water is also distributed evenly
+soil_nitrogen_concentration <- function(SoilNitrogenContent, WaterAvailable) {
+  if (WaterAvailable == 0) {
+    return (0)
+  } else {
+    return (SoilNitrogenContent/WaterAvailable)
   }
-  SoilWater <- (WaterContentTheta * SoilDensity * LayerDepth)
-  SoilWater_converted <- SoilWater * (10**8/10**10)
-  return (SoilNitrogenContent/SoilWater_converted)
   
 }
 
@@ -282,7 +322,7 @@ leaf_expansion_rate <- function(Tm, PotentialLeafArea, ThermalTime,
                                 LeafExpansionTime, Tb = 4.8, a = 0.01379){
   temp_diff <- Tm - Tb
   numerator <- exp(-a * (ThermalTime - LeafExpansionTime))
-  denom <-  (1 + (exp(-1 * (ThermalTime - LeafExpansionTime))))**2
+  denom <-  (1 + (exp(-a * (ThermalTime - LeafExpansionTime))))**2
   return (temp_diff * PotentialLeafArea * a * (numerator/denom) )
 }
 
@@ -290,7 +330,7 @@ leaf_senescence_rate <- function(Tm, PotentialLeafArea, ThermalTime, LeafSenesce
                                  Tb = 4.8, a = 0.01379) {
   temp_diff <- Tm - Tb
   numerator <- exp(-a * (ThermalTime - LeafSenescenceTime))
-  denom <-  (1 + (exp(-1 * (ThermalTime - LeafSenescenceTime))))**2
+  denom <-  (1 + (exp(-a * (ThermalTime - LeafSenescenceTime))))**2
   return (temp_diff * PotentialLeafArea * a * (numerator/denom) )
 }
 
@@ -330,7 +370,10 @@ senescent_leaf_area_discrete <- function(prev_SenescentLeafArea, LeafSenescenceR
 # PlantLeafArea_t = Σ(TotalLeafArea_it - SenescentLeafArea_it) for i = 1 to LeafNumber
 plant_leaf_area <- function(TotalLeafArea, SenescentLeafArea) {
   # Assumes inputs are vectors of length i, where i is the total number of leaves
-  return (TotalLeafArea - SenescentLeafArea)
+  diffs <- TotalLeafArea - SenescentLeafArea
+  non_zero_diffs <- diffs[diffs >= 0]
+  return (sum(non_zero_diffs))
+  # return (sum( TotalLeafArea - SenescentLeafArea))
 }
 
 ### Leaf initiation parameters ### 
@@ -352,7 +395,7 @@ init_leaf_expansion_time <- function(LeafInitiationTime, a = 0.01379) {
 }
 
 init_potential_leaf_area <- function(PotentialLeafNumber, PotentialLeafSize, PotentialLeafProfile,
-                                     a=2.05, b=0.049) {
+                                     a=-2.05, b=0.049) {
   enumerated_leaf_numbers <- seq(1,PotentialLeafNumber)
   leaf_profile_exp <- (enumerated_leaf_numbers-PotentialLeafProfile)/(PotentialLeafProfile -1)
   exp_a <- a * leaf_profile_exp**2
@@ -360,8 +403,7 @@ init_potential_leaf_area <- function(PotentialLeafNumber, PotentialLeafSize, Pot
   return (PotentialLeafSize * exp(exp_a + exp_b))
 }
 
-init_leaf_expansion_duration <- function(PotentialLeafNumber, PotentialLeafSize,
-                                         PotentialLeafProfile,
+init_leaf_expansion_duration <- function(PotentialLeafNumber, PotentialLeafProfile,
                                          a=153, b=851.3, c=0.78) {
   enumerated_leaf_numbers <- seq(1,PotentialLeafNumber)
   exponent=(-1*(enumerated_leaf_numbers - PotentialLeafProfile)**2)/((c*PotentialLeafNumber)**2)
