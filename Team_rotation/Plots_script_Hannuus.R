@@ -6,6 +6,7 @@ library(tibble)
 library(DESeq2)      
 library(ggplot2)     
 library(pheatmap) 
+library(tidyverse)
 
 # Set a working directory 
 setwd("/scratch/Users/cava3224/team_rotation/github_repo/Team_rotation")
@@ -15,8 +16,11 @@ load("results/DESeq2_data.RData")
 load("results/results_tpm.RData")
 load("results/results_counts.RData")
 load("results/data_files.RData")
+load("results/summary_stats_files.RData")
+load("results/terpenoid_files.RData")
 
 #### Upload terpenoid synthesis genes list ####
+## Note this section contains the generation of the terpenoid data already loaded in the beginning ##
 terpenoid_genes <- read_tsv("terpenoid_synthesis__genes_of_interest.tsv")
 
 
@@ -49,7 +53,11 @@ terpenoid_genes_list$regulation <- terpenoid_sig_counts$regulation[match(terpeno
 terpenoid_genes_list <- terpenoid_genes_list %>%
   filter(regulation != "Not significant")
 
-# Save dataset as a .csv file 
+# Save dataset as an .Rdata file to load it easily later
+save(terpenoid_genes, terpenoid_genes_list, terpenoid_sig_counts, terpenoid_sig_tpm
+     , file = "results/terpenoid_files.RData")
+
+# Save this matrix as a .csv file for easier sharing 
 write.csv(terpenoid_genes_list, "terpenoid_sig_genes.csv", row.names = FALSE)
 
 # More complete dataset with all the KEGG IDs
@@ -58,7 +66,6 @@ terpenoid_KEGG <- terpenoid_genes_list %>%
 
 # Save dataset as a .csv file 
 write.csv(terpenoid_KEGG, "terpenoid_KEGG_genes.csv", row.names = FALSE)
-
 
 # Reset plotting computer
 dev.off()
@@ -169,7 +176,131 @@ pheatmap(sig_log_tpm_matrix_numeric,
          color = colorRampPalette(c("purple", "white", "yellow"))(50),
          hclustfun = custom_hclust,
          breaks = breaks,
-         filename ="results/heatmap_terpenoid_sig_genes_log_tpm.png"
+        filename ="results/heatmap_terpenoid_sig_genes_log_tpm.png"
 )
 
+#### GHI Data plots ####
+## Minnesota
+# Read the data
+Minnesota_GHI_1998 <- read.csv("climate_data/averaged_Minnesota_GHI_1998.csv")  # replace with your actual file name
+Minnesota_GHI_2001 <- read.csv("climate_data/averaged_Minnesota_GHI_2001.csv") 
+Minnesota_GHI_2004 <- read.csv("climate_data/averaged_Minnesota_GHI_2004.csv") 
+Minnesota_GHI_2007 <- read.csv("climate_data/averaged_Minnesota_GHI_2007.csv") 
+Minnesota_GHI_2010 <- read.csv("climate_data/averaged_Minnesota_GHI_2010.csv") 
+Minnesota_GHI_2013 <- read.csv("climate_data/averaged_Minnesota_GHI_2013.csv") 
+Minnesota_GHI_2016 <- read.csv("climate_data/averaged_Minnesota_GHI_2016.csv") 
+Minnesota_GHI_2019 <- read.csv("climate_data/averaged_Minnesota_GHI_2019.csv") 
+Minnesota_GHI_2023 <- read.csv("climate_data/averaged_Minnesota_GHI_2023.csv") 
 
+Minnesota_all <- bind_rows(Minnesota_GHI_1998, Minnesota_GHI_2001, Minnesota_GHI_2004,
+                           Minnesota_GHI_2007, Minnesota_GHI_2010, Minnesota_GHI_2013,
+                           Minnesota_GHI_2016, Minnesota_GHI_2019, Minnesota_GHI_2023)
+  
+# Aggregate average GHI by year
+yearly_ghi_Minnesota <- aggregate(avg_GHI ~ year, Minnesota_all, mean)
+
+
+merged_df_Minnesota <- Minnesota_all %>%
+  mutate(
+    date = make_date(year, month, day),
+    doy = yday(date)  # day of year (1 to 365/366)
+  )
+
+ggplot(merged_df_Minnesota, aes(x = doy, y = avg_GHI, fill = factor(year))) +
+  geom_bar(stat = "identity", position = "dodge", width = 1) +
+  labs(
+    title = "Daily GHI Distribution per Year",
+    x = "Day of Year",
+    y = "Average GHI",
+    fill = "Year"
+  ) +
+  theme_minimal()
+
+ggplot(merged_df_Minnesota, aes(x = doy, y = avg_GHI)) +
+  geom_bar(stat = "identity", fill = "skyblue", width = 1) +
+  facet_wrap(~ year, ncol = 1) +
+  labs(
+    title = "Daily GHI Distribution by Year",
+    x = "Day of Year",
+    y = "Average GHI"
+  ) +
+  theme_minimal()
+
+## Georgia
+Georgia_GHI_1998 <- read.csv("climate_data/averaged_Georgia_GHI_1998.csv")  # replace with your actual file name
+Georgia_GHI_2001 <- read.csv("climate_data/averaged_Georgia_GHI_2001.csv") 
+Georgia_GHI_2004 <- read.csv("climate_data/averaged_Georgia_GHI_2004.csv") 
+Georgia_GHI_2007 <- read.csv("climate_data/averaged_Georgia_GHI_2007.csv") 
+Georgia_GHI_2010 <- read.csv("climate_data/averaged_Georgia_GHI_2010.csv") 
+Georgia_GHI_2013 <- read.csv("climate_data/averaged_Georgia_GHI_2013.csv") 
+Georgia_GHI_2016 <- read.csv("climate_data/averaged_Georgia_GHI_2016.csv") 
+Georgia_GHI_2019 <- read.csv("climate_data/averaged_Georgia_GHI_2019.csv") 
+Georgia_GHI_2023 <- read.csv("climate_data/averaged_Georgia_GHI_2023.csv") 
+
+Georgia_all <- bind_rows(Georgia_GHI_1998, Georgia_GHI_2001, Georgia_GHI_2004,
+                           Georgia_GHI_2007, Georgia_GHI_2010, Georgia_GHI_2013,
+                           Georgia_GHI_2016, Georgia_GHI_2019, Georgia_GHI_2023)
+
+
+# Aggregate average GHI by year
+yearly_ghi_Georgia <- aggregate(avg_GHI ~ year, Georgia_all, mean)
+
+
+merged_df_Georgia <- Georgia_all %>%
+  mutate(
+    date = make_date(year, month, day),
+    doy = yday(date)  # day of year (1 to 365/366)
+  )
+
+ggplot(merged_df_Georgia, aes(x = doy, y = avg_GHI, fill = factor(year))) +
+  geom_bar(stat = "identity", position = "dodge", width = 1) +
+  labs(
+    title = "Daily GHI Distribution per Year",
+    x = "Day of Year",
+    y = "Average GHI",
+    fill = "Year"
+  ) +
+  theme_minimal()
+
+ggplot(merged_df_Georgia, aes(x = doy, y = avg_GHI)) +
+  geom_bar(stat = "identity", fill = "skyblue", width = 1) +
+  facet_wrap(~ year, ncol = 1) +
+  labs(
+    title = "Daily GHI Distribution by Year",
+    x = "Day of Year",
+    y = "Average GHI"
+  ) +
+  theme_minimal()
+
+
+#### Plotting summary statistics means ####
+print(summary_stats_all_genes)
+
+# Bar graph with mean for all subcategories of genes
+ggplot(summary_stats_all_genes, aes(x = id, y = mean)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = 0.2) +
+  theme_minimal() +
+  labs(title = "Mean log2FC for gene subsets",
+       y = "Mean log2FC",
+       x = "Gene subset")
+
+# Bar graph with mean for all terpenoid subcategories 
+ggplot(summary_stats_terpenoid_genes, aes(x = id, y = mean)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = 0.2) +
+  theme_minimal() +
+  labs(title = "Mean log2FC for gene subsets",
+       y = "Mean log2FC",
+       x = "Gene subset")
+
+# # Bar graph with the min and max values for each of the subcategories of genes 
+# ggplot(summary_stats_terpenoid_genes, aes(x = id, y = mean)) +
+#   geom_bar(stat = "identity", fill = "skyblue") +
+#   geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = 0.2) +
+#   geom_text(aes(y = max, label = round(max,1)), vjust = -0.5, color = "red") +
+#   geom_text(aes(y = min, label = round(min,1)), vjust = 1.5, color = "blue") +
+#   theme_minimal() +
+#   labs(title = "Mean log2FC with SD, min, and max",
+#        y = "log2FC",
+#        x = "Gene subset")
