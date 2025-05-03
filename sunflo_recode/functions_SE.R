@@ -8,7 +8,7 @@ test_vector <- c(1, 2, 3, 4, 5)
 # At harvest time, crop yield is computed as proportion of total aerial biomass
 # allocated to seeds (i.e. crop yield not defined before harvest).
 # CropYieldharvest = CropBiomassharvest ×HarvestIndexharvest
- crop_yeild <- function(crop_biomass, harvest_index) {
+ crop_yield <- function(crop_biomass, harvest_index) {
   return(crop_biomass * harvest_index)
 }
 
@@ -198,28 +198,38 @@ radiation_use_efficiency <- function(thermal_time, thermal_stress_rue, water_str
                                      # TODO abiotic stresses
                                      ) {
   # Compute potential RUE based on thermal time
-  potential_rue <- if (thermal_time < 300) {
-    r0
-  } else if (thermal_time < thermal_time_flowering) {
-    r0 + 2 * (thermal_time - 300) / (thermal_time_flowering - 300)
-  } else if (thermal_time < thermal_time_maturity) {
-    rmax
-  } else if (thermal_time < thermal_time_senescence) {
-    a * exp(b * (1 - ((thermal_time - thermal_time_maturity) / (thermal_time_maturity - thermal_time_senescence))))
-  } else {
-    0
-  }
+  # print(thermal_time)
+  potentialRUE <- potential_rue(thermal_time) 
   
   # TODO check on this
   # Adjust RUE based on abiotic stresses
   env_factors <- c(thermal_stress_rue,water_stress_rue,nitrogen_stress_rue)
-  env_stress <- prod(env_factors[env_factors != 0])
-  rue <- potential_rue * env_stress
-  # rue <- potential_rue * thermal_stress_rue * water_stress_rue * nitrogen_stress_rue
-  
+  env_stress <- prod(env_factors)
+  rue <- potentialRUE * env_stress
+  # rue <- potentialRUE * thermal_stress_rue * water_stress_rue * nitrogen_stress_rue
+  # print(rue)
   return(rue)
 }
 
+# Jenna note: adding this as separate function
+potential_rue <- function(thermal_time,
+                          r0 = 1.0, #  initial RUE during vegetative stage
+                          rmax = 3.0, # maximum RUE during flowering,
+                          thermal_time_flowering = phenology_parameters$ThermalTimeFlowering, 
+                          thermal_time_maturity = phenology_parameters$ThermalTimeMaturity, 
+                          thermal_time_senescence = phenology_parameters$ThermalTimeSenescence) {
+  if (thermal_time < 300) {
+    return (r0)
+  } else if (thermal_time < thermal_time_flowering) {
+    return (r0 + 2 * (thermal_time - 300) / (thermal_time_flowering - 300))
+  } else if (thermal_time < thermal_time_maturity) {
+    return (rmax)
+  } else if (thermal_time < thermal_time_senescence) {
+    return (a * exp(b * (1 - ((thermal_time - thermal_time_maturity) / (thermal_time_maturity - thermal_time_senescence)))) )
+  } else {
+    return (0)
+  }
+}
 
 
 # Soil Parameters -------------------------------------------------------------
@@ -357,21 +367,19 @@ leaf_area_parameters <- list(
 # optimal_upper_temperature = 28, critical_temperature = 37
 
 
+# Jenna note: rerganizing to make clearer
 thermal_stress_rue <- function(daily_mean_temperature) {
-  stress_rue <- ifelse(
-    daily_mean_temperature > 4.8 & daily_mean_temperature <= 20,
-    daily_mean_temperature * (1 / (20 - 4.8)) - (4.8 / (20 - 4.8)),
-    ifelse(
-      daily_mean_temperature > 20 & daily_mean_temperature <= 28,
-      1,
-      ifelse(
-        daily_mean_temperature > 28 & daily_mean_temperature <= 37,
-        daily_mean_temperature * (1 / (28 - 37)) - (37 / (28 - 37)),
-        0
-      )
-    )
-  )
-  return(stress_rue)
+  if (daily_mean_temperature > 4.8 & daily_mean_temperature <= 20) {
+    thermal_stress_rue <- daily_mean_temperature * (1 / (20 - 4.8)) - (4.8 / (20 - 4.8))
+  } else if (daily_mean_temperature > 20 & daily_mean_temperature <= 28) {
+    thermal_stress_rue <- 1
+  } else if (daily_mean_temperature > 28 & daily_mean_temperature <= 37) {
+    thermal_stress_rue <- daily_mean_temperature * (1 / (28 - 37)) - (37 / (28 - 37))
+  } else {
+    thermal_stress_rue <- 0
+  }
+
+  return (thermal_stress_rue)
 }
 
 # ThermalStressMineralization -------------------------------------------------
@@ -382,8 +390,7 @@ thermal_stress_rue <- function(daily_mean_temperature) {
 
 thermal_stress_mineralization <- function(daily_mean_temperature) {
   # Logistic function for thermal stress on mineralization
-  stress_mineralization <- 36 / 
-    (1 + (36 - 1) * exp(-0.119 * (daily_mean_temperature - 15)))
+  stress_mineralization <- 36 / (1 + (36 - 1) * exp(-0.119 * (daily_mean_temperature - 15)))
   return(stress_mineralization)
 }
 

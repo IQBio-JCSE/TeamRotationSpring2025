@@ -28,10 +28,10 @@ Radiation <- climate_data$RAD #from climate file
 harvest <- nrow(climate_data)# Length of harvest, predefined and calculated based on the climate file. 
   
 # Initialize a vector and set specific dates with nitrogen or water doses
-#fert_days = c()
-#fert_values = c()
+fert_days = c(30,60,90,120)
+fert_values = c(20,20,20,20)
 Fertilization <- numeric(harvest+1) # predefined values 
-#Fertilization[c(fert_days)] <- c(fert_values)
+Fertilization[c(fert_days)] <- c(fert_values)
 
 water_days <- c(70,80) # estimating number of days until flowering for H. annuus
 water_values <- c(60,60)
@@ -88,7 +88,7 @@ SenescentLeafArea <-  matrix(ncol = harvest+1, nrow = 0)
 #LeafExpansionRate <- numeric(harvest+1)
 #LeafSenescenceRate <- numeric(harvest+1)
 
-WaterStress <- numeric(harvest+1)
+WaterStress <- rep(1,harvest+1)
 WaterStressExpansion <- numeric(harvest+1)
 Evaporation <- numeric(harvest+1)
 Transpiration <- numeric(harvest+1)
@@ -100,7 +100,7 @@ TranspirationRate <- numeric(harvest+1)
 Leaching <- numeric(harvest+1)
 Denitrification <- numeric(harvest+1)
 WaterStressMineralization <- numeric(harvest+1)
-WaterStressRUE<- numeric(harvest+1)
+WaterStressRUE<-  rep(1,harvest+1) #numeric(harvest+1)
 
 RootDepth <- numeric(harvest+1)
   
@@ -108,20 +108,21 @@ NitrogenStressExpansion <- numeric(harvest+1)
 NitrogenSupply <- numeric(harvest+1)
 NitrogenSupplyRate  <- numeric(harvest+1)
 NitrogenDemand <- numeric(harvest+1)
+NitrogenDemandRate <-  numeric(harvest+1)
 CropNitrogenConcentrationCritical <- numeric(harvest+1)
 NitrogenUptake <- numeric(harvest+1)
 NNI <- numeric(harvest+1) # not sure if this is necessary to save? 
 Mineralization <- numeric(harvest+1) 
 MineralizationRate <- numeric(harvest+1) 
 SoilNitrogenConcentration <- numeric(harvest+1)
-NitrogenStressRUE <- numeric(harvest+1)
+NitrogenStressRUE <-  rep(1,harvest+1) #numeric(harvest+1)
 
 PAR <- numeric(harvest+1)
 RUE <- numeric(harvest+1)
 
 WaterStressPhenology <- numeric(harvest+1)
 ThermalTime <- numeric(harvest+1)
-ThermalStressRUE <- numeric(harvest + 1)
+ThermalStressRUE <-  rep(1,harvest+1) #numeric(harvest + 1)
 ThermalStressMineralization <-numeric(harvest+1)
 RelativeWaterContent <- numeric(harvest + 1)
 
@@ -146,22 +147,23 @@ days_since_water_input <- function(rainfall, irrigation, current_x) {
 }
 ### end functions
 WaterAvailable_beforedrainage <- numeric(harvest + 1)
+WaterStressEvaporation<- numeric(harvest + 1)
 
 # Connecting functions, will need to import most functions from sarah elizabeth
-for (t in 2:100) {
+for (t in 2:harvest) {
   #T = t +1
 
   # Water stress
   x <- days_since_water_input(Rainfall[t], Irrigation[t],x) # should be number of days since last water input
-  WaterStressEvaporation <- water_stress_evaporation(x) 
-  Evaporation[t] <- evaporation(RIE[t-1], PET[t], WaterStressEvaporation) #RIE defined below, may have to move this up
+  WaterStressEvaporation[t] <- water_stress_evaporation(x) 
+  Evaporation[t] <- evaporation(RIE[t-1], PET[t], WaterStressEvaporation[t]) #RIE defined below, may have to move this up
   WaterDemand[t] <- water_demand(RIE[t-1], PET[t])
   WaterStressConductance[t] <- water_stress_conductance(WaterStress[t-1]) #NDY
   Transpiration[t] <- transpiration(WaterDemand[t], WaterStressConductance[t]) # NDY
-  WaterAvailable_beforedrainage[t] <- water_available_before_drain(WaterAvailable[t-1], Rainfall[t],Irrigation[t],Evaporation[t], # NDY . don't actually need drainage in this function. BUT, add if statment, cannot exceed SoilWaterCapcity_fc
-                                       Transpiration[t]) 
+  # NDY . don't actually need drainage in this function. BUT, add if statment, cannot exceed SoilWaterCapcity_fc
+  WaterAvailable_beforedrainage[t] <- water_available_before_drain(WaterAvailable[t-1], Rainfall[t],Irrigation[t],Evaporation[t], Transpiration[t]) 
   
-  RootDepth[t] <- root_depth(RootDepth[t-1], RootGrowthRate, T_m[t], RootDepthLimit)
+  RootDepth[t] <- root_depth(RootDepth[t-1], T_m[t], RootGrowthRate, RootDepthLimit)
   Drainage[t] <- drainage(WaterAvailable_beforedrainage[t], RootDepth[t], SoilWaterCapacity_fc) # NDY , did not see this defined in the documentation
   WaterAvailable[t] <- WaterAvailable_beforedrainage[t] - Drainage[t]
   
@@ -191,13 +193,13 @@ for (t in 2:100) {
   # Nitrogen stress
   SoilNitrogenContent[t] <- soil_nitrogen_content(SoilNitrogenContent[t-1], Fertilization[t], # NDY
                               Mineralization[t],Leaching[t], Denitrification[t],
-                              NitrogenSupply[t]) 
+                              NitrogenSupply[t-1]) 
 
   SoilNitrogenConcentration[t] <- soil_nitrogen_concentration(SoilNitrogenContent[t], WaterAvailable[t])
   # SoilNitrogenConcentration[t] <- soil_nitrogen_concentration(SoilNitrogenContent[t-1],RootDepth[t],
   #                                                             WaterContentTheta[t], SoilDensity) # NDY , see jenna_notes
   
-  NitrogenSupplyRate[t] <- nitrogen_uptake_rate(TranspirationRate, SoilNitrogenConcentration[t-1]) #NDY , same thing as nitrogen update rate
+  NitrogenSupplyRate[t] <- nitrogen_uptake_rate(Transpiration[t], SoilNitrogenConcentration[t]) #NDY , same thing as nitrogen update rate
  
   # Same as NitrogenUptake, no functions for this in the documentation
   # Given because we look at one day at a time, the rate per day can
@@ -240,7 +242,9 @@ for (t in 2:100) {
     }
   
     PlantLeafArea[t] <- plant_leaf_area(TotalLeafArea[,t], SenescentLeafArea[,t]) # review existing function
-  }
+  }  
+  
+  
   
   LAI[t] <- leaf_area_index(SowingDensity, PlantLeafArea[t])
   
@@ -268,11 +272,10 @@ for (t in 2:100) {
   
   # Final output, crop yield for entire harvest
   CropBiomass[t] <- crop_biomass(PAR[t], RIE[t],RUE[t], CropBiomass[t-1])
-  #CropYield[t] <- crop_yeild(CropBiomass[t],HarvestIndex[t])
 }
 
 HarvestIndex <- cultivar_parameters$PotentialHarvestIndex
-CropYield_harvest <- crop_yeild(CropBiomass[harvest], HarvestIndex) #note: fix spelling
+CropYield_harvest <- crop_yield(CropBiomass[harvest], HarvestIndex) #note: fix spelling
 
 
 # Calc additional outputs 

@@ -229,8 +229,13 @@ nitrogen_uptake_rate <- function(TranspirationRate, SoilNitrogenConcentration) {
 #  • CropNitrogenConcentrationCritical is defined with a = 4.53 and b = 0.42;
 #  • CropNitrogenConcentrationMaximum is defined with a = 6.49 and b = 0.44;
 crop_nitrogen_concentration <- function(CropBiomass, a, b) {
-  max <- a * CropBiomass ** (-b)
-  return ( min(a,max) )
+  if (CropBiomass == 0) {
+    crop_dependent_N <- 0
+  } else {
+    crop_dependent_N <- a * CropBiomass**(-b)
+  }
+  min_N <- min(a,crop_dependent_N)
+  return ( min_N )
 }   
 
 # The critical crop nitrogen uptake is defined as the minimum nitrogen uptake necessary to achieve maximum biomass accumulation.
@@ -248,14 +253,14 @@ nitrogen_demand <- function(CropNitrogenConcentrationCritical, CropBiomass) {
 nitrogen_nutrition_index <- function(NitrogenSupply_all, NitrogenDemand) {
   # Here, NitrogenSupply is a vector for ALL timepoints
   if (NitrogenDemand == 0) {
-    return (0)
+    return (1)
   }
   return (sum(NitrogenSupply_all)/NitrogenDemand)
 }
 
 I_nitrogen_nutrition_index <- function(NitrogenSupply, NitrogenDemand) {
   if (NitrogenDemand == 0) {
-    return (0)
+    return (1)
   }
   return (NitrogenSupply/NitrogenDemand)
 }
@@ -272,11 +277,11 @@ nitrogen_stress_expansion <- function(NNI) {
 }
 
 # The impact of nitrogen deficit on photosynthesis (RUE) is the ratio of daily nitrogen
-# uptake rate to the daily critical nitrogen amount needed to satisfy the demand.
+# uptake rate to the daily critical nitrogen amount neeaded to satisfy the demand.
 # NitrogenStressRUEt = NitrogenSupplyRatet/NitrogenDemandRatet
 nitrogen_stress_rue <- function(NitrogenSupplyRate, NitrogenDemandRate) {
   if (NitrogenDemandRate == 0) {
-    return (0)
+    return (1) #if there is no demand, there is no stress effect from nitrogen
   }
   return (NitrogenSupplyRate/NitrogenDemandRate)
 }
@@ -285,7 +290,7 @@ nitrogen_stress_rue <- function(NitrogenSupplyRate, NitrogenDemandRate) {
 # Equation:
 # SoilNitrogenConcentration = (SoilNitrogen Content [kg N/ha soil])/(% water in soil * SoilDensity * Soil Depth* (10^8 cm2/ha) * (1 ha/10^10 mm2))
 # Final units should be kg Nitrogen / mm water
-# soil_nitrogen_concentration <- function(SoilNitrogenContent,LayerDepth,
+# soil_nitrogen_concentration <- function(SoilNitrogenContent, LayerDepth,
 #                                         WaterContentTheta, SoilDensity = 1.3){
 #   depth <- max(300, LayerDepth)
 #   SoilWater <- (WaterContentTheta * SoilDensity * LayerDepth)
@@ -299,12 +304,9 @@ nitrogen_stress_rue <- function(NitrogenSupplyRate, NitrogenDemandRate) {
 # kg of Nitrogen per mm of water. Assumes the amount of nitrogen is 
 # distributed evenly across 1 ha, and that the water is also distributed evenly
 soil_nitrogen_concentration <- function(SoilNitrogenContent, WaterAvailable) {
-  if (WaterAvailable == 0) {
-    return (0)
-  } else {
-    return (SoilNitrogenContent/WaterAvailable)
-  }
-  
+  # water available should never be 0
+  return (SoilNitrogenContent/WaterAvailable)
+
 }
 
 
@@ -322,16 +324,16 @@ leaf_expansion_rate <- function(Tm, PotentialLeafArea, ThermalTime,
                                 LeafExpansionTime, Tb = 4.8, a = 0.01379){
   temp_diff <- Tm - Tb
   numerator <- exp(-a * (ThermalTime - LeafExpansionTime))
-  denom <-  (1 + (exp(-a * (ThermalTime - LeafExpansionTime))))**2
+  denom <-  (1 + exp(-a * (ThermalTime - LeafExpansionTime)))**2
   return (temp_diff * PotentialLeafArea * a * (numerator/denom) )
 }
 
-leaf_senescence_rate <- function(Tm, PotentialLeafArea, ThermalTime, LeafSenescenceTime, 
+leaf_senescence_rate <- function(Tm, LeafArea, ThermalTime, LeafSenescenceTime, 
                                  Tb = 4.8, a = 0.01379) {
   temp_diff <- Tm - Tb
   numerator <- exp(-a * (ThermalTime - LeafSenescenceTime))
   denom <-  (1 + (exp(-a * (ThermalTime - LeafSenescenceTime))))**2
-  return (temp_diff * PotentialLeafArea * a * (numerator/denom) )
+  return (temp_diff * LeafArea * a * (numerator/denom) )
 }
 
 # Jenna note: below are redefined from SE's functions
@@ -342,8 +344,8 @@ leaf_senescence_rate <- function(Tm, PotentialLeafArea, ThermalTime, LeafSenesce
 # TotalLeafArea_it = ∫(LeafExpansionRate_it × WaterStressExpansion_t × NitrogenStressExpansion_t) dt
 total_leaf_area <- function(LeafExpansionRate, WaterStressExpansion, NitrogenStressExpansion) {
   # All inputs are vectors of length t, where t is current time (timestep)
-  sum_prods <- LeafExpansionRate * LeafExpansionRate * NitrogenStressExpansion
-  return (sum_out)
+  sum_prods <- LeafExpansionRate * WaterStressExpansion * NitrogenStressExpansion
+  return (sum(sum_prods))
 }
 
 total_leaf_area_discrete <- function(prev_TotalLeafArea, LeafExpansionRate, WaterStressExpansion, NitrogenStressExpansion) {
@@ -370,21 +372,20 @@ senescent_leaf_area_discrete <- function(prev_SenescentLeafArea, LeafSenescenceR
 # PlantLeafArea_t = Σ(TotalLeafArea_it - SenescentLeafArea_it) for i = 1 to LeafNumber
 plant_leaf_area <- function(TotalLeafArea, SenescentLeafArea) {
   # Assumes inputs are vectors of length i, where i is the total number of leaves
-  diffs <- TotalLeafArea - SenescentLeafArea
-  non_zero_diffs <- diffs[diffs >= 0]
-  return (sum(non_zero_diffs))
-  # return (sum( TotalLeafArea - SenescentLeafArea))
+  # diffs <- TotalLeafArea - SenescentLeafArea
+  # non_zero_diffs <- diffs[diffs >= 0]
+  # return (sum(non_zero_diffs))
+  return (sum( TotalLeafArea - SenescentLeafArea))
 }
 
 ### Leaf initiation parameters ### 
 initialize_leaf_generation <- function(n_possible_leaves = 500, Phyllotherm_1=76.43,Phyllotherm_7=16.34) {
-  #default n_possible_leaves picked an arbitrary value for this... could adjust later if needed
-  init_leaf_tt <- numeric(n_possible_leaves)
+  init_leaf_tt <- numeric(n_possible_leaves) # Placeholder matrix, one spot for each leaf
   for (i in 1:n_possible_leaves) {
     if (i <= 6) {
       init_leaf_tt[i] <- (i * Phyllotherm_1)
     } else {
-      init_leaf_tt[i] <- ((i-5) * Phyllotherm_7) + 6 * Phyllotherm_1
+      init_leaf_tt[i] <- (i-5) * Phyllotherm_7 + 6 * Phyllotherm_1
     }
   }
   return (init_leaf_tt)
