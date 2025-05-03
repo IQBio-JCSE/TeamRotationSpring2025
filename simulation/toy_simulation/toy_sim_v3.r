@@ -49,7 +49,7 @@ library(parallel)  # parallelization
 set.seed(123)
 
 # Simulation parameters
-years <- 20 # Number of years to simulate
+years <- 2 # Number of years to simulate
 # Initial populations sizes
 initial_wild <- 100
 initial_domesticated <- 100
@@ -58,9 +58,62 @@ initial_domesticated <- 100
 temperature <- runif(years, 15, 35)         # degrees Celsius
 
 precipitation <- runif(years, 200, 800)     # mm/year
+
+
 # Pest pressure (0 to 1, where 0 is no pest pressure and 1 is high pest pressure) 
-# TODO pest pressure relate to climate (high temp --> high pest pressure)
-pest_pressure <- runif(years, 0.1, 1.0)     # 0 (none) to 1 (high)
+# pest_pressure <- runif(years, 0.1, 1.0)     # 0 (none) to 1 (high)
+
+
+# pest (Aphid) population directly influenced by temperature, with warmer temperatures generally leading to faster development, reproduction, and increased survival rates.
+# pest_pressure_function <- function(temp) {
+#   if (temp < 20) {
+#     return(runif(1, 0.1, 0.3))  # Low pest pressure in cooler temperatures
+#   } else if (temp < 30) {
+#     return(runif(1, 0.3, 0.7))  # Moderate pest pressure in moderate temperatures
+#   } else {
+#     return(runif(1, 0.7, 1.0))  # High pest pressure in warmer temperatures
+#   }
+# }
+
+
+#' Estimate aphid pest pressure based on temperature
+#'
+#' @param temp Numeric vector of daily temperatures (°C)
+#' @param Tmin Minimum temperature threshold for activity
+#' @param Tmax Maximum temperature threshold for activity
+#' @param a Brière model coefficient
+#' @return A vector of pest pressure values (scaled 0 to 1)
+
+# The Brière model is a nonlinear temperature-dependent growth model that describes how the development rate of an ectothermic organism (like an insect) changes with temperature. It’s widely used in entomology and ecology because it captures the asymmetric, bell-shaped curve of biological performance versus temperature.
+
+
+aphid_pest_pressure <- function(temp, Tmin = 5, Tmax = 35, a = 0.0002) {
+  # Brière-based growth rate
+  growth_rate <- ifelse(
+    temp > Tmin & temp < Tmax,
+    a * temp * (temp - Tmin) * sqrt(Tmax - temp),
+    0
+  )
+  # Normalize to 0–1 scale for pest pressure
+  pressure <- growth_rate / max(growth_rate, na.rm = TRUE)
+  return(pressure)
+}
+test_temps <- seq(0, 40, by = 1)
+pest_pressure <- aphid_pest_pressure(temps)
+
+plot(day, pressure, type = "l", col = "red", lwd = 2,
+     xlab = "Temperature (°C)", ylab = "Pest Pressure (0–1)",
+     main = "Temperature-Driven Aphid Pest Pressure")
+
+
+
+
+
+
+
+
+
+
 
 # Trait parameters ------------------------------------------------------------
 # TODO add real data on gene expression HERE
@@ -89,6 +142,8 @@ pop_domesticated <- numeric(years)
 pop_wild[1] <- initial_wild
 pop_domesticated[1] <- initial_domesticated
 
+
+
 # Helper functions
 
 
@@ -105,7 +160,7 @@ reproduction_function <- function(base_repro, pest_pressure, secondary_metabolit
 
 # yeild function
 
-
+# selection -----------------------------------------
 selection_function <- function(pop, yield, is_domesticated = FALSE) {
   if (is_domesticated) {
     pop * (1 + 0.05 * yield)  # selection for high yield
@@ -113,6 +168,52 @@ selection_function <- function(pop, yield, is_domesticated = FALSE) {
     pop * (1 + 0.02 * yield)  # weak natural selection on productivity
   }
 }
+
+# Parameters
+set.seed(123)
+n_individuals <- 100        # Population size
+n_generations <- 20         # Number of generations
+selection_proportion <- 0.2 # Top % selected
+heritability <- 0.5        # Trait heritability (H^2)
+trait_sd <- 1               # Standard deviation of trait
+
+# Initialize population with random trait values
+population <- rnorm(n_individuals, mean = 0, sd = trait_sd)
+mean_trait <- numeric(n_generations)
+
+# Simulate over generations
+for (gen in 1:n_generations) {
+  mean_trait[gen] <- mean(population)
+  
+  # Select top individuals based on trait value
+  n_selected <- ceiling(n_individuals * selection_proportion)
+  parents <- sort(population, decreasing = TRUE)[1:n_selected]
+  
+  # Offspring inherit average of selected trait + some random variation
+  population <- rnorm(n_individuals, mean = mean(parents), sd = trait_sd)
+}
+
+
+# Simulation loop
+for (gen in 1:n_generations) {
+  # Record mean trait value
+  mean_trait[gen] <- mean(population)
+  
+  # Select top individuals
+  n_selected <- ceiling(n_individuals * selection_proportion)
+  selected <- sort(population, decreasing = TRUE)[1:n_selected]
+  
+  # Generate next generation
+  genetic_component <- rnorm(n_individuals, mean = mean(selected), sd = 0)
+  environmental_component <- rnorm(n_individuals, mean = 0, sd = sqrt((1 - heritability) * trait_sd^2))
+  population <- genetic_component * sqrt(heritability) + environmental_component
+}
+
+# Plot results
+plot(1:n_generations, mean_trait, type = "b", pch = 19,
+     xlab = "Generation", ylab = "Mean Trait Value",
+     main = "Simulated Human Selection Over Generations")
+
 
 # patch of plants 7.0 plants per m^2 for a field plot of 5 acres
 # 5 acres = 20234.3 m^2
@@ -143,8 +244,12 @@ wild_growth_function <- function(base_growth, temp, precip, secondary_metabolite
 plot(wild_growth_function(growth_base_wild, temperature[t], precipitation[t], secondary_metabolite_wild))
 plot(wild_growth_function(growth_base_wild, temperature[t], precipitation[t], secondary_metabolite_wild))
 
-# Simulation loop
+# Simulation ---------------------------------------------------
+# for each year, loop through growing season (per day) for each plot of population
+
+
 for (t in 2:years) {
+  # pest
   # Wild
   # growth_wild <- growth_function(growth_base_wild, temperature[t], precipitation[t], secondary_metabolite_wild)
   growth_wild <- wild_growth_function(growth_base_wild, temperature[t], precipitation[t], secondary_metabolite_wild)
