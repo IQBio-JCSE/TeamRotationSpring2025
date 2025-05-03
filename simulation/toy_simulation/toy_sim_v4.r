@@ -56,12 +56,39 @@ pest_pressure_data <- data.table(
 
 # climate data ----------------------------------------------------------------
 climate_data <- data.table(
-  # study_period = 'A"
+  study_period = 'A',
   year = rep(1:years, each = 150),
   day = rep(1:150, times = years),
   temperature = rnorm(years * 150, mean = 20, sd = 5), # Random temperature data
   rainfall = rnorm(years * 150, mean = 100, sd = 20) # Random rainfall data
 )
+# unique ID for each study period, year & day
+climate_data[, ID := paste(study_period, year, day, sep = "_")]
+
+# Plot temperature by ID
+ggplot(climate_data, aes(x = ID, y = temperature, group = year, color = as.factor(year))) +
+  geom_line() +
+  geom_vline(
+    xintercept = cumsum(rep(150, years))[-length(cumsum(rep(150, years)))], # Add vertical lines at year boundaries
+    linetype = "dashed", color = "black", alpha = 0.5
+  ) +
+  labs(
+    title = "Temperature by Day",
+    x = "Day",
+    y = "Temperature (°C)",
+    color = "Year"
+  )+
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    panel.grid.major = element_blank(),  # Removes grid lines
+    panel.grid.minor = element_blank()
+    # axis.ticks.x = element_blank(),
+    # panel.grid.major.x = element_blank(),  # Removes major vertical grid lines
+    # panel.grid.major.y = element_blank()   # Removes major horizontal grid lines
+  )
+  
+
 
 # plot temperature & precipitation across    
 plot(climate_data$day[climate_data$year==2], climate_data$temperature[climate_data$year==2], type = "l", col = "#d09220", lwd = 2,
