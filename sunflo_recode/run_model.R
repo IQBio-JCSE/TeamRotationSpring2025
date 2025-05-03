@@ -18,6 +18,7 @@ climate_data <- read.table(
 
 ## Intro a variable genetic parameters
 a_water_stress = runif(1, min=-15.6, max=-2.3)
+# a_water_stress=-8.95
 ##
 
 # Variables which are predefined or passed in :
@@ -162,7 +163,7 @@ for (t in 2:harvest) {
   WaterStressEvaporation[t] <- water_stress_evaporation(x) 
   Evaporation[t] <- evaporation(RIE[t-1], PET[t], WaterStressEvaporation[t]) #RIE defined below, may have to move this up
   WaterDemand[t] <- water_demand(RIE[t-1], PET[t])
-  WaterStressConductance[t] <- water_stress_conductance(WaterStress[t-1]) #NDY
+  WaterStressConductance[t] <- water_stress_conductance(WaterStress[t-1],a_water_stress) #NDY
   Transpiration[t] <- transpiration(WaterDemand[t], WaterStressConductance[t]) # NDY
   # NDY . don't actually need drainage in this function. BUT, add if statment, cannot exceed SoilWaterCapcity_fc
   WaterAvailable_beforedrainage[t] <- water_available_before_drain(WaterAvailable[t-1], Rainfall[t],Irrigation[t],Evaporation[t], Transpiration[t]) 
@@ -178,7 +179,7 @@ for (t in 2:harvest) {
   WaterStress[t] <- water_stress(WaterAvailable[t], WaterTotal[t]) # NDY
   WaterStressExpansion[t] <- water_stress_expansion(WaterStress[t], a_water_stress) # NDY
   
-  WaterStressPhenology[t] <- water_stress_phenology(WaterStressConductance[t],a_water_stress) # NDY
+  WaterStressPhenology[t] <- water_stress_phenology(WaterStressConductance[t]) # NDY
   ThermalTime[t] <- thermal_time_discrete(ThermalTime[t-1], T_m[t], WaterStressPhenology[t])
  
   TranspirationRate <- Transpiration[t] # using same logic as other places
@@ -309,13 +310,14 @@ output <- data.frame(
   RIE = RIE,
   RUE = RUE,
   CropBiomass = CropBiomass,
-  CropYield = CropYield_harvest
+  CropYield = CropYield_harvest,
+  a_water_stress = a_water_stress
   #OilContent = OilContent
 )
 
-outpath = "sample_out.csv"
-#outpath = "output/sample_out"+as.character(a_water_stress)+".csv"
-#print(outpath)
+#outpath = "sample_out.csv"
+outpath = paste0("output/sample_out_", sprintf("%.2f", a_water_stress),".csv")
+print(outpath)
 write.csv(output, outpath)
 
 
