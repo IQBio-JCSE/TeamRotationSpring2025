@@ -241,6 +241,7 @@ potential_rue <- function(thermal_time,
 # Soil parameters
 soil_parameters <- list(
   RootDepthLimit = 1000.0, # Maximum soil rooting depth (mm)
+  RootDepthMaximum = 1800.0, # Maximum species rooting depth
   SoilWaterCapacity_0_30 = 19.7, # Gravimetric water content at field capacity (0–30 cm) (%)
   SoilWaterCapacity_Wilting_0_30 = 9.7, # Gravimetric water content at wilting point (0–30 cm) (%)
   SoilWaterCapacity_30_Root = 19.7, # Gravimetric water content at field capacity (30 cm–root depth) (%)

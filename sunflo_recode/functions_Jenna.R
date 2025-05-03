@@ -144,13 +144,11 @@ water_total <- function(RootDepth, SoilWaterCapacity_available_water,
 # creased water deficit. The same response curve is used for transpiration (WaterStressConductance)
 # and photosynthesis (WaterStressRUE).
 # Depemds on a ∈ [−15.6; −2.3], genotype-dependent response parameter
-water_stress_expansion <- function(WaterStress) {
-  a = -8.95
+water_stress_expansion <- function(WaterStress, a = -8.95) {
   return ( -1 + (2/(1+exp(a * WaterStress))))
 }
 
-water_stress_conductance <- function(WaterStress) {
-  a = -8.95
+water_stress_conductance <- function(WaterStress, a = -8.95) {
   return (1/(1+exp(4.5 * a * WaterStress)))
 }
 
@@ -232,7 +230,7 @@ crop_nitrogen_concentration <- function(CropBiomass, a, b) {
   if (CropBiomass == 0) {
     crop_dependent_N <- 0
   } else {
-    crop_dependent_N <- a * CropBiomass**(-b)
+    crop_dependent_N <- a * (CropBiomass)**(-b)
   }
   min_N <- min(a,crop_dependent_N)
   return ( min_N )
@@ -253,7 +251,7 @@ nitrogen_demand <- function(CropNitrogenConcentrationCritical, CropBiomass) {
 nitrogen_nutrition_index <- function(NitrogenSupply_all, NitrogenDemand) {
   # Here, NitrogenSupply is a vector for ALL timepoints
   if (NitrogenDemand == 0) {
-    return (1)
+    return (0)
   }
   return (sum(NitrogenSupply_all)/NitrogenDemand)
 }
@@ -299,6 +297,17 @@ nitrogen_stress_rue <- function(NitrogenSupplyRate, NitrogenDemandRate) {
 #     return (0)
 #   }
 #   return (SoilNitrogenContent/SoilWater_converted)
+# }
+
+# soil_nitrogen_concentration <- function(SoilNitrogenContent, LayerDepth,
+#                                         WaterContentTheta, SoilDensity = 1.3){
+#   depth <- max(300, LayerDepth)
+#   # SoilWater <- (WaterContentTheta * SoilDensity * LayerDepth)
+#   # SoilWater_converted <- SoilWater * (10**8/10**10)
+#   # if (SoilWater_converted == 0 ) {
+#   #   return (0)
+#   # }
+#   return (SoilNitrogenContent * (1/SoilDensity) * (1/WaterContentTheta/100) * (1/depth))
 # }
 
 # kg of Nitrogen per mm of water. Assumes the amount of nitrogen is 
