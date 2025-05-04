@@ -323,7 +323,7 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
     RIE = RIE,
     RUE = RUE,
     CropBiomass = CropBiomass,
-    CropYield = CropYield_harvest,
+    CropYield = CropYield,
     TerpeneStressRUE = TerpeneStressRUE
     # a_water_stress = a_water_stress
     #OilContent = OilContent
