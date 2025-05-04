@@ -141,32 +141,6 @@ ggplot(climate_data[climate_data$Year==2000,], aes(x = ID, y = TMAX/10, group = 
     # panel.grid.major.y = element_blank()   # Removes major horizontal grid lines
   )
 
-  # Plot temperature by ID
-ggplot(climate_data, aes(x = ID, y = TMAX/10, group = Location, color = as.factor(Location))) +
-  geom_line() +
-  # geom_smooth()
-  # geom_vline(
-  #   xintercept = cumsum(rep(150, years))[-length(cumsum(rep(150, years)))], # Add vertical lines at year boundaries
-  #   linetype = "dashed", color = "black", alpha = 0.5
-  # ) +
-  labs(
-    title = "All Years",
-    x = "Day",
-    y = "Max Temperature (°C)",
-    color = "Time"
-  )+
-  theme_minimal() +
-  theme(
-    # axis.text.x = element_blank(),
-    axis.text.x = element_text(angle = 90, hjust = 1, size = 2),  # Rotate x-axis text by 45 degrees
-    
-    panel.grid.major = element_blank(),  # Removes grid lines
-    panel.grid.minor = element_blank()
-    # axis.ticks.x = element_blank(),
-    # panel.grid.major.x = element_blank(),  # Removes major vertical grid lines
-    # panel.grid.major.y = element_blank()   # Removes major horizontal grid lines
-  )
-
 
 # Group data by 7-day intervals and calculate the average TMAX
 climate_data_weekly <- climate_data %>%
@@ -202,7 +176,7 @@ plot(climate_data$day[climate_data$year==2], climate_data$rainfall[climate_data$
      main = "Precipitation Across Study Period")
 # TODO: accumulation
 
-
+# HELPER FUNCTIONS
 
 
 # pest pressure ---------------------------------------------------------------
@@ -264,9 +238,7 @@ for (year in 1:years) {
 
   for (plot in 1:plots) { # for each plot population
     
-    # trait_expression <-- need ONE value for sunflo
-
-
+    # trait_expression
 
     for (day in 1:150) { # for each day in growing season
     # pest pressure
@@ -275,21 +247,14 @@ for (year in 1:years) {
     # pest_pressure_data <- rbind(pest_pressure_data, data.table(year = year, day = day, pressure = pest_pressure))
     
     
-    # growth: base growth rate, temperture, effect of investment in trait expression
-    # growth rate: SUNFLO
-    # 
+    # growth: base growth rate, temperture,
 
     # death related to intrinisic propbability of death 
 
-
     }
-    # plot yield <-- TODO add in here
+    # plot yield
 
   }
-
-
-
-
   # Select top plots based on yield value
   selected_plots <- sort(plot_yield, decreasing = TRUE)[1:n_selected]
 
