@@ -25,6 +25,7 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
   PET <- climate_data$ETP #from the climate data file as ETP
   T_m <- (climate_data$Tmax + climate_data$Tmin)/2 #from climate file
   Radiation <- climate_data$RAD #from climate file
+  # TODO: add pest climate info
   
   harvest <- nrow(climate_data)# Length of harvest, predefined and calculated based on the climate file. 
   
@@ -130,12 +131,12 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
   ThermalTime <- numeric(harvest)
   ThermalStressRUE <-  rep(1,harvest) #numeric(harvest + 1)
   ThermalStressMineralization <-numeric(harvest)
-  RelativeWaterContent <- numeric(harvest + 1)
+  RelativeWaterContent <- numeric(harvest)
   
   # Seed nitrogen and water with initial values at index 1
   SoilNitrogenContent <- numeric(harvest)
   SoilNitrogenContent[1] <- 20 # As defined in docs, p 14. Using the larger value for now because treating everything as one layer
-  WaterContentTheta <- numeric(harvest + 1) 
+  WaterContentTheta <- numeric(harvest) 
   WaterContentTheta[1] <- SoilWaterCapacity_fc # according to paper, this is usually equal to field capactiy
   WaterAvailable <- numeric(harvest)
   WaterAvailable[1] <- convert_gravimetric_to_mm_water(WaterContentTheta[1]) # assuming no roots, just consider the surface layer of soil (first 30 mm)
@@ -154,8 +155,12 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
     }
   }
   ### end functions
-  WaterAvailable_beforedrainage <- numeric(harvest + 1)
-  WaterStressEvaporation<- numeric(harvest + 1)
+  WaterAvailable_beforedrainage <- numeric(harvest)
+  WaterStressEvaporation<- numeric(harvest)
+  
+  ## NEW : terpene/terpenoid synthesis pathway stress
+  # We expect this will negatively impact the increase in biomass
+  TerpeneStressRUE <- numeric(harvest)
   
   # Connecting functions, will need to import most functions from sarah elizabeth
   for (t in 2:harvest) {
@@ -273,10 +278,15 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
     NitrogenDemandRate[t] <- NitrogenDemand[t] 
     NitrogenStressRUE[t] <- nitrogen_stress_rue(NitrogenSupplyRate[t], NitrogenDemandRate[t]) # NDY Not well defined. ratio of daily update rate to daily demand 
     
-    # Some of the below thermal time values should be constants I think, 
-    # May need to modify function definition
+    
+    # RUE[t] <- radiation_use_efficiency(ThermalTime[t], ThermalStressRUE[t], 
+    #                                    WaterStressRUE[t], NitrogenStressRUE[t])
+    
+    TerpeneStressRUE[t] <- terp_expression_stress_rue(T_m[t], pest_resistance_genetic)
+    # Adding in effects of expressing terpenoid genes to RUE
     RUE[t] <- radiation_use_efficiency(ThermalTime[t], ThermalStressRUE[t], 
-                                       WaterStressRUE[t], NitrogenStressRUE[t])
+                                       WaterStressRUE[t], NitrogenStressRUE[t],
+                                       TerpeneStressRUE[t])
     
     # Final output, crop yield for entire harvest
     CropBiomass[t] <- crop_biomass(PAR[t], RIE[t],RUE[t], CropBiomass[t-1])
@@ -313,7 +323,8 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
     RIE = RIE,
     RUE = RUE,
     CropBiomass = CropBiomass,
-    CropYield = CropYield
+    CropYield = CropYield_harvest,
+    TerpeneStressRUE = TerpeneStressRUE
     # a_water_stress = a_water_stress
     #OilContent = OilContent
   )
