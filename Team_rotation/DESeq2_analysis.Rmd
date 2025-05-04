@@ -72,7 +72,12 @@ counts_matrix    <- round(counts_matrix)
 counts_filtered  <- counts_matrix[rowSums(counts_matrix) > FILTER_TRESHOLD, ]
 tpm_filtered     <- tpm[rowSums(tpm) > FILTER_TRESHOLD, ]
 
-save(counts, tpm, counts_filtered, tpm_filtered, g2s, file = "results/data_files.RData")
+# Filtering the tpm values of only the significantly expressed genes
+all_sig_genes_tpm <- tpm_filtered_genes %>%
+  filter(gene_id %in% filtered_genes$gene_name)
+
+
+save(counts, tpm, counts_filtered, tpm_filtered, all_sig_genes_tpm, g2s, file = "results/data_files.RData")
 
 ```
 
@@ -199,6 +204,7 @@ for (i in ecology) {
 avg_and_sd_values           <- do.call(cbind,  avg_and_sd_values)
 colnames(avg_and_sd_values) <- paste0(rep(ecology, each = 2), c("_avg", "_sd"))
 avg_and_sd_values           <- as.data.frame(avg_and_sd_values) %>% rownames_to_column("gene_id") %>% merge(g2s)
+
 
 save(avg_and_sd_values, file = "results/results_tpm.RData" )
 ```

@@ -6,14 +6,53 @@
 # Load libraries --------------------------------------------------------------
 library(data.table) # data manipulation
 library(tidyverse)
-library(ggplot2) # plotting
-library(parallel)  # parallelization
+# install.packages("segmented")  # Install if not already installed
+library(segmented)
 
 # Load functions --------------------------------------------------------
 source("simulation/Population_Simulation/Functions.r") # Load helper functions
 
-# TODO load sunflo model/function
-# source("sunflo_model.R") # Load sunflower model
+# Load sunflo model/function
+source("sunflo_recode/run_model.R") # Load sunflower model
+
+# test climate data
+source("sunflo_recode/climate_data.R")
+
+# import txt file first row as header, tab separated
+climate_data <- read.table(
+  "sunflo_french_repo/sunflo/data/AUZ_2014.txt",
+  header = TRUE,
+  sep = "\t",
+  stringsAsFactors = FALSE
+)
+
+# test sunflo
+test <- run_sunflo(climate_data,
+                   2, 
+                   '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode')
+
+
+plot(test$ThermalTime[test$CropYield>0],
+     test$CropYield[test$CropYield>0])
+
+
+
+lm(test$CropBiomass~test$ThermalTime)
+
+# Fit a linear model
+lm_model <- lm(CropBiomass ~ ThermalTime, data = test)
+
+# Fit a piecewise linear model with a breakpoint
+seg_model <- segmented(lm_model, seg.Z = ~ThermalTime, psi = 10)  # Initial guess for breakpoint at x=3
+
+# View the summary of the segmented model
+line_summary <- summary(seg_model)
+line_summary$coefficients[2,1]
+
+# Plot the data and the fitted piecewise model
+plot(test$ThermalTime, test$CropBiomass, pch = 16, col = "blue", main = "Piecewise Linear Fit", xlab = "x", ylab = "y")
+lines(test$ThermalTime, fitted(seg_model), col = "red", lwd = 2)  # Add the fitted line
+
 
 # Set seed for reproducibility -----------------------------------------------
 set.seed(123)
@@ -59,12 +98,14 @@ pest_pressure_data <- data.table(
 )
 
 
+
 for (year in 1:years) {
 #   initialize population
 
   for (plot in 1:plots) { # for each plot population
     
     # trait_expression <-- need ONE value for sunflo
+    trait_expression <- .4
 
 
 
@@ -72,21 +113,37 @@ for (year in 1:years) {
     # pest pressure
     pest_pressure <- aphid_pest_pressure(climate_data[year == year & day == day, temperature])
     # store pest pressure
-    # pest_pressure_data <- rbind(pest_pressure_data, data.table(year = year, day = day, pressure = pest_pressure))
+    # pest_pressure_data <- rbind(pest_pressure_data, data.table(year = year, plot = plot, day = day, pressure = pest_pressure))
     
     
-    # growth: base growth rate, temperture, effect of investment in trait expression
-    # growth rate: SUNFLO
-    # 
+    # sunflo
+    sunflo <- run_sunflo(climate_data,
+                        trait_expression, 
+                       '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode')
+    
+    # Fit linear model
+    lm_model <- lm(CropYeild ~ ThermalTime, data = sunflo)
+    
+    # Fit piecewise linear model with breakpoint
+    seg_model <- segmented(lm_model, seg.Z = ~ThermalTime, psi = 10)  # Initial guess for breakpoint at x=3
+    
+    # summary of segmented model
+    line_summary <- summary(seg_model)
+    
+    # pull growthrate from segmented model esimate
+    # TODO: base growth rate based on climate --> add effect of investment in trait expression
+    growth_rate <- line_summary$coefficients[2,1]
+    
+    
+    
 
     # death related to intrinisic propbability of death 
 
 
     }
-    # plot yield <-- TODO make sure sunflo here
+    # plot yield <-- TODO what are the sunflo unit here?
+    
     # store yield and trait expression
-    wild_yield <- runif(1, 0, 100) # Placeholder for yield calculation
-    wild_trait_expression <- runif(1, 0, 1) # Placeholder for trait expression calculation
     wild_population <- rbind(wild_population, data.table(
       year = year,
       plot = plot,
@@ -95,8 +152,8 @@ for (year in 1:years) {
       trait_sd = sd(wild_trait_expression), # Placeholder for standard deviation
       yield = wild_yield
     ))
-    domesticated_yield <- runif(1, 0, 100) # Placeholder for yield calculation
-    domesticated_trait_expression <- runif(1, 0, 1) # Placeholder for trait expression calculation
+
+    
     domesticated_population <- rbind(domesticated_population, data.table(
       year = year,
       plot = plot,

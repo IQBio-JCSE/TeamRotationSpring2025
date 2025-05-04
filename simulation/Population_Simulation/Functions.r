@@ -2,7 +2,10 @@
 
 
 # pest pressure ---------------------------------------------------------------
-aphid_pest_pressure <- function(temp, Tmin = 5, Tmax = 35, a = 0.0002) {
+aphid_pest_pressure <- function(temp, # let's make this mean temperature
+Tmin = 5, 
+Tmax = 35, 
+a = 0.0002) {
   # Brière-based growth rate
   aphid_growth_rate <- ifelse(
     temp > Tmin & temp < Tmax,
