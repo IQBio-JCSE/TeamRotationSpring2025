@@ -6,17 +6,18 @@
 # Load libraries --------------------------------------------------------------
 library(data.table) # data manipulation
 library(tidyverse)
-library(ggplot2) # plotting
-library(parallel)  # parallelization
+# install.packages("segmented")  # Install if not already installed
+library(segmented)
 
 # Load functions --------------------------------------------------------
 source("simulation/Population_Simulation/Functions.r") # Load helper functions
 
-# TODO load sunflo model/function
+# Load sunflo model/function
 source("sunflo_recode/run_model.R") # Load sunflower model
 
-# Load test climate data
+# test climate data
 source("sunflo_recode/climate_data.R")
+
 # import txt file first row as header, tab separated
 climate_data <- read.table(
   "sunflo_french_repo/sunflo/data/AUZ_2014.txt",
@@ -29,6 +30,27 @@ climate_data <- read.table(
 test <- run_sunflo(climate_data,
                    2, 
                    '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode')
+
+
+plot(test$ThermalTime[test$CropYield>0],
+     test$CropYield[test$CropYield>0])
+
+
+
+lm(test$CropBiomass~test$ThermalTime)
+
+# Fit a linear model
+lm_model <- lm(CropBiomass ~ ThermalTime, data = test)
+
+# Fit a piecewise linear model with a breakpoint
+seg_model <- segmented(lm_model, seg.Z = ~ThermalTime, psi = 10)  # Initial guess for breakpoint at x=3
+
+# View the summary of the segmented model
+line_summary <- summary(seg_model)
+line_summary$coefficients[2,1]
+# Plot the data and the fitted piecewise model
+plot(test$ThermalTime, test$CropBiomass, pch = 16, col = "blue", main = "Piecewise Linear Fit", xlab = "x", ylab = "y")
+lines(test$ThermalTime, fitted(seg_model), col = "red", lwd = 2)  # Add the fitted line
 
 
 # Set seed for reproducibility -----------------------------------------------
