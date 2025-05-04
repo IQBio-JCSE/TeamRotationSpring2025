@@ -186,6 +186,7 @@ radiation_interception <- function(LAI, k = 0.9) {
 # piecewise function computes potential RUE based on thermal time and abiotic stresses
 # increase in energy cost of biomass produced (oil content), exponential decrease of RUE during grain filling
 radiation_use_efficiency <- function(thermal_time, thermal_stress_rue, water_stress_rue, nitrogen_stress_rue,
+                                     pest_stress_rue=1,
                                      thermal_time_flowering = phenology_parameters$ThermalTimeFlowering, 
                                      thermal_time_maturity = phenology_parameters$ThermalTimeMaturity, 
                                      thermal_time_senescence = phenology_parameters$ThermalTimeSenescence, 
@@ -203,7 +204,7 @@ radiation_use_efficiency <- function(thermal_time, thermal_stress_rue, water_str
   
   # TODO check on this
   # Adjust RUE based on abiotic stresses
-  env_factors <- c(thermal_stress_rue,water_stress_rue,nitrogen_stress_rue)
+  env_factors <- c(thermal_stress_rue,water_stress_rue,nitrogen_stress_rue,pest_stress_rue)
   env_stress <- prod(env_factors)
   rue <- potentialRUE * env_stress
   # rue <- potentialRUE * thermal_stress_rue * water_stress_rue * nitrogen_stress_rue

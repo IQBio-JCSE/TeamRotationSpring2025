@@ -420,3 +420,29 @@ init_leaf_expansion_duration <- function(PotentialLeafNumber, PotentialLeafProfi
   return (a+b*exp(exponent))
 }
 
+# Pest Stress
+# PestStressRUE - effects of expressing pest-resistance-related genes
+terp_expression_stress_rue <- function(Tm, pest_resistance_genetic) {
+  T_b = 30 # in this case, "base" temp is 30 C
+  constant = 0.02 #Based on calculations from https://pmc.ncbi.nlm.nih.gov/articles/PMC10445015 and 
+  # https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/epdf/10.1002/bit.20237?saml_referrer
+  max_terpene_expression <- 1
+  
+  # based on expriments from https://www.sciencedirect.com/science/article/pii/S0168192323000928
+  terpene_expr_increase_per_C <- (0.22/(43-30)) 
+  if (Tm > T_b) {
+    terpene_expression <- pest_resistance_genetic + (Tm - T_b) * terpene_expr_increase_per_C * pest_resistance_genetic
+  } else {
+    terpene_expression  <- pest_resistance_genetic
+  }
+  norm_terpene_expression <- terpene_expression / max_terpene_expression # normalize terpenoid expression
+  print(constant * norm_terpene_expression)
+  TerpeneStressRUE <- 1 - (constant * norm_terpene_expression)
+
+  return (TerpeneStressRUE)
+}
+
+# Optional TODO: add effect of pest presence on biomass... 
+
+
+
