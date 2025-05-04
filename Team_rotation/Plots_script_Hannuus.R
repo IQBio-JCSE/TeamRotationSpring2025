@@ -7,6 +7,7 @@ library(DESeq2)
 library(ggplot2)     
 library(pheatmap) 
 library(tidyverse)
+library(tidyr)
 
 # Set a working directory 
 setwd("/scratch/Users/cava3224/team_rotation/github_repo/Team_rotation")
@@ -18,6 +19,7 @@ load("results/results_counts.RData")
 load("results/data_files.RData")
 load("results/summary_stats_files.RData")
 load("results/terpenoid_files.RData")
+load("results/counts_data.Rdata")
 
 #### Upload terpenoid synthesis genes list ####
 ## Note this section contains the generation of the terpenoid data already loaded in the beginning ##
@@ -304,3 +306,83 @@ ggplot(summary_stats_terpenoid_genes, aes(x = id, y = mean)) +
 #   labs(title = "Mean log2FC with SD, min, and max",
 #        y = "log2FC",
 #        x = "Gene subset")
+
+#### Histograms of counts distribution ####
+# Get rid of samples that =0 in 
+wild_df_filtered <- wild_df_counts[rowSums(wild_df_counts[ , -1]) > 0, ]
+domesticated_df_filtered <- domesticated_df_counts[rowSums(domesticated_df_counts[ , -1]) > 0, ]
+
+# Calculate row means 
+domesticated_df_filtered$total_counts_mean <- rowMeans(domesticated_df_filtered[ , -1])
+wild_df_filtered$total_counts_mean <- rowMeans(wild_df_filtered[ , -1])
+# Calculate row sums 
+domesticated_df_filtered$total_counts_sums <- rowSums(domesticated_df_filtered[ , -1])
+wild_df_filtered$total_counts_sums <- rowSums(wild_df_filtered[ , -1])
+
+# Only show overlapping genes between wild and domesticated species
+overlapping_genes <- intersect(wild_df_filtered[[1]], domesticated_df_filtered[[1]])
+
+# Select final data frames for plotting 
+wild_df_final <- wild_df_filtered[wild_df_filtered[[1]] %in% overlapping_genes, ]
+domesticated_df_final <- domesticated_df_filtered[domesticated_df_filtered[[1]] %in% overlapping_genes, ]
+
+# Set output file path (adjust path and filename as needed)
+png("results/gene_counts_histogram_wild.png", width = 800, height = 600)
+
+# Plot row sums 
+hist(log10(wild_df_final$total_counts_sums + 1),
+     main = "Wild gene counts distribution (log10)",
+     xlab = "log10(Total counts + 1)",
+     col = "lightblue",
+     border = "white",
+     breaks = 50, 
+     xlim = c(0, 7))
+
+dev.off()
+
+# Set output file path (adjust path and filename as needed)
+png("results/gene_counts_histogram_domesticated.png", width = 800, height = 600)
+
+hist(log10(domesticated_df_final$total_counts_sums + 1),
+     main = "Domesticated gene counts distribution (log10)",
+     xlab = "log10(Total counts + 1)",
+     col = "salmon",
+     border = "white",
+     breaks = 50,
+     xlim = c(0, 7))
+
+dev.off()
+
+# Plot row means 
+hist(log10(wild_df_final$total_counts_mean + 1),
+     main = "Wild gene counts distribution (log10)",
+     xlab = "log10(Total counts + 1)",
+     col = "lightblue",
+     border = "white",
+     breaks = 50)
+
+hist(log10(domesticated_df_final$total_counts_mean + 1),
+     main = "Domesticated gene counts distribution (log10)",
+     xlab = "log10(Total counts + 1)",
+     col = "salmon",
+     border = "white",
+     breaks = 50,
+     fileName())
+
+# # Separate counts for terpenoid pathway genes 
+# terpenoid_gene_col <- terpenoid_genes_list$gene_name 
+# 
+# # Select final data frames for plotting 
+# wild_df_terpenoid <- wild_df_filtered[wild_df_filtered[[1]] %in% terpenoid_gene_col, ]
+# domesticated_df_terpenoid <- domesticated_df_counts[domesticated_df_counts[[1]] %in% terpenoid_gene_col, ]
+# 
+# domesticated_df_terpenoid$total_counts_mean <- rowMeans(domesticated_df_terpenoid[ , -1])
+# domesticated_df_terpenoid$total_counts_sums <- rowSums(domesticated_df_terpenoid[ , -1])
+# 
+# hist(log10(wild_df_terpenoid$total_counts_sums + 1),
+#      main = "Wild gene counts distribution (log10)",
+#      xlab = "log10(Total counts + 1)",
+#      col = "lightblue",
+#      border = "white",
+#      breaks = 50)
+

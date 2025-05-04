@@ -245,6 +245,23 @@ t.test(results$baseMean, filtered_results$baseMean)
 
 # Intersect by gene_name filtered results table and raw counts
 counts_filtered_genes <- counts_selected[filtered_results$gene_id,]
-```
 
+# Assume your data is in a data frame called `counts_df`
+head(colnames(counts_filtered_genes))
+
+# Identify wild and domesticated sample columns
+wild_samples_counts <- grep("wild", colnames(counts_filtered_genes), value = TRUE)
+domesticated_samples_counts <- grep("domesticated", colnames(counts_filtered_genes), value = TRUE)
+
+# Keep gene name column
+counts_filtered_genes <- rownames_to_column(counts_filtered_genes, var = "gene_id")
+gene_col <- colnames(counts_filtered_genes)[1] 
+
+# Subset data
+wild_df_counts <- counts_filtered_genes[, c(gene_col, wild_samples_counts)]
+domesticated_df_counts <- counts_filtered_genes[, c(gene_col, domesticated_samples_counts)]
+
+save(gene_col, domesticated_df_counts, wild_df_counts, file = "results/counts_data.Rdata")
+
+```
 
