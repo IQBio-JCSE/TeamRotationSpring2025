@@ -131,11 +131,11 @@ for (year in 1:years) {
     line_summary <- summary(seg_model)
     
     # pull growthrate from segmented model esimate
+    # TODO: base growth rate based on climate --> add effect of investment in trait expression
     growth_rate <- line_summary$coefficients[2,1]
     
     
     
-    # growth: base growth rate, temperture, effect of investment in trait expression
 
     # death related to intrinisic propbability of death 
 
