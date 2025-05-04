@@ -13,7 +13,23 @@ library(parallel)  # parallelization
 source("simulation/Population_Simulation/Functions.r") # Load helper functions
 
 # TODO load sunflo model/function
-# source("sunflo_model.R") # Load sunflower model
+source("sunflo_recode/run_model.R") # Load sunflower model
+
+# Load test climate data
+source("sunflo_recode/climate_data.R")
+# import txt file first row as header, tab separated
+climate_data <- read.table(
+  "sunflo_french_repo/sunflo/data/AUZ_2014.txt",
+  header = TRUE,
+  sep = "\t",
+  stringsAsFactors = FALSE
+)
+
+# test sunflo
+test <- run_sunflo(climate_data,
+                   2, 
+                   '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode')
+
 
 # Set seed for reproducibility -----------------------------------------------
 set.seed(123)
@@ -57,6 +73,7 @@ pest_pressure_data <- data.table(
   day = integer(),
   pressure = numeric()
 )
+
 
 
 for (year in 1:years) {

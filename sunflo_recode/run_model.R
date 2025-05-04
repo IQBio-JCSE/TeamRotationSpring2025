@@ -4,10 +4,10 @@
 # When referring to "docs", see: rsunflo documentation at https://github.com/picasa/rsunflo/blob/master/inst/doc/documentation_model.pdf 
 # April 2025
 
-run_sunflo <- function(climate_data, pest_resistance_genetic) {
+run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory) {
   # Import functions defined in other files
-  source("functions_Jenna.R")
-  source("functions_SE.R")
+  source(file.path(working_directory, "functions_Jenna.R"))
+  source(file.path(working_directory, "functions_SE.R"))
   
   # TODO:modify below depending on how climate data is passed in from SE's R model.
   # Note that column names below may need to be updated as well
@@ -313,7 +313,7 @@ run_sunflo <- function(climate_data, pest_resistance_genetic) {
     RIE = RIE,
     RUE = RUE,
     CropBiomass = CropBiomass,
-    CropYield = CropYield_harvest
+    CropYield = CropYield
     # a_water_stress = a_water_stress
     #OilContent = OilContent
   )
