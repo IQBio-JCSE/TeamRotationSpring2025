@@ -308,13 +308,10 @@ ggplot(summary_stats_terpenoid_genes, aes(x = id, y = mean)) +
 #        x = "Gene subset")
 
 #### Histograms of counts distribution ####
-# Get rid of samples that =0 in 
+# Get rid of samples that =0 in all significant genes 
 wild_df_filtered <- wild_df_counts[rowSums(wild_df_counts[ , -1]) > 0, ]
 domesticated_df_filtered <- domesticated_df_counts[rowSums(domesticated_df_counts[ , -1]) > 0, ]
 
-# Calculate row means 
-domesticated_df_filtered$total_counts_mean <- rowMeans(domesticated_df_filtered[ , -1])
-wild_df_filtered$total_counts_mean <- rowMeans(wild_df_filtered[ , -1])
 # Calculate row sums 
 domesticated_df_filtered$total_counts_sums <- rowSums(domesticated_df_filtered[ , -1])
 wild_df_filtered$total_counts_sums <- rowSums(wild_df_filtered[ , -1])
@@ -353,34 +350,71 @@ hist(log10(domesticated_df_final$total_counts_sums + 1),
 
 dev.off()
 
-# Plot row means 
-hist(log10(wild_df_final$total_counts_mean + 1),
-     main = "Wild gene counts distribution (log10)",
-     xlab = "log10(Total counts + 1)",
-     col = "lightblue",
-     border = "white",
-     breaks = 50)
+# Check if it follows a normal distribution
+qqnorm(log10(wild_df_final$total_counts_mean + 1))
+qqline(log10(wild_df_final$total_counts_mean + 1), col = "red")
 
-hist(log10(domesticated_df_final$total_counts_mean + 1),
-     main = "Domesticated gene counts distribution (log10)",
+qqnorm(log10(domesticated_df_final$total_counts_mean + 1))
+qqline(log10(domesticated_df_final$total_counts_mean + 1), col = "red")
+
+
+# Generate graphs with normal distribution
+# Wild 
+png("results/gene_counts_histogram_wild_norm.png", width = 800, height = 600)
+
+hist(log10(wild_df_final$total_counts_mean + 1), 
+     main = "Wild Counts Normal Fit", 
+     xlab = "log10(Total counts + 1)", 
+     col = "lightblue", 
+     border = "white", 
+     breaks = 50, 
+     freq = FALSE)  # Important: use density instead of counts
+
+# Calculate mean and SD of your log-transformed data
+mu <- mean(log10(wild_df_final$total_counts_mean + 1))
+sigma <- sd(log10(wild_df_final$total_counts_mean + 1))
+
+# Overlay normal density curve
+curve(dnorm(x, mean = mu, sd = sigma), 
+      add = TRUE, 
+      col = "red", 
+      lwd = 2)
+dev.off()
+
+# Doemsticated 
+png("results/gene_counts_histogram_domesticated_norm.png", width = 800, height = 600)
+
+hist(log10(domesticated_df_final$total_counts_sums + 1),
+     main = "Domesticated Counts Normal Fit",
      xlab = "log10(Total counts + 1)",
      col = "salmon",
      border = "white",
      breaks = 50,
-     fileName())
+     freq = FALSE)
 
-# # Separate counts for terpenoid pathway genes 
-# terpenoid_gene_col <- terpenoid_genes_list$gene_name 
+# Calculate mean and SD of your log-transformed data
+mu <- mean(log10(domesticated_df_final$total_counts_mean + 1))
+sigma <- sd(log10(domesticated_df_final$total_counts_mean + 1))
+
+# Overlay normal density curve
+curve(dnorm(x, mean = mu, sd = sigma), 
+      add = TRUE, 
+      col = "red", 
+      lwd = 2)
+dev.off()
 # 
-# # Select final data frames for plotting 
+# # Separate counts for terpenoid pathway genes
+# terpenoid_gene_col <- terpenoid_genes_list$gene_name
+# 
+# # Select final data frames for plotting
 # wild_df_terpenoid <- wild_df_filtered[wild_df_filtered[[1]] %in% terpenoid_gene_col, ]
 # domesticated_df_terpenoid <- domesticated_df_counts[domesticated_df_counts[[1]] %in% terpenoid_gene_col, ]
 # 
 # domesticated_df_terpenoid$total_counts_mean <- rowMeans(domesticated_df_terpenoid[ , -1])
 # domesticated_df_terpenoid$total_counts_sums <- rowSums(domesticated_df_terpenoid[ , -1])
 # 
-# hist(log10(wild_df_terpenoid$total_counts_sums + 1),
-#      main = "Wild gene counts distribution (log10)",
+# hist(wild_df_terpenoid$total_counts_sums,
+#      main = "Wild terpenoid gene counts distribution (log10)",
 #      xlab = "log10(Total counts + 1)",
 #      col = "lightblue",
 #      border = "white",
