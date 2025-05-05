@@ -56,3 +56,16 @@ write.csv(out_2014, outpath_2014)
 #   write.csv(out, outpath)
 #   
 # }
+
+
+
+climate_data_clean <- read.table(
+  "rad_data.txt", 
+  header = TRUE,
+  sep = "\t",
+  stringsAsFactors = FALSE
+)
+
+tmp <- climate_data_2006[c("Annee","Mois","Jour","ETP","RAD")]
+saveRDS(tmp, "radiation_data_AUZ_2008.RDS" )
+readRDS("radiation_data_AUZ_2008.RDS")
