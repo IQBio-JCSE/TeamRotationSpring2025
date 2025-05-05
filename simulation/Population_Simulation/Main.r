@@ -27,9 +27,10 @@ climate_data <- read.table(
 )
 
 # test sunflo
+sunflo_wd =  '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode'
 test <- run_sunflo(climate_data,
                    2, 
-                   '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode')%>%
+                  sunflo_wd)%>%
   mutate(DayNumber = row_number())
 
 
