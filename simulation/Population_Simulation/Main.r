@@ -27,31 +27,34 @@ climate_data <- read.table(
 )
 
 # test sunflo
+sunflo_wd =  '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode'
 test <- run_sunflo(climate_data,
                    2, 
-                   '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode')
-
-
-plot(test$ThermalTime[test$CropYield>0],
-     test$CropYield[test$CropYield>0])
+                  sunflo_wd)%>%
+  mutate(DayNumber = row_number())
 
 
 
-lm(test$CropBiomass~test$ThermalTime)
+plot(test$DayNumber,
+     test$CropYield)
+
+
+lm(test$CropBiomass~test$DayNumber)
 
 # Fit a linear model
-lm_model <- lm(CropBiomass ~ ThermalTime, data = test)
+lm_model <- lm(CropBiomass ~ DayNumber, data = test)
 
 # Fit a piecewise linear model with a breakpoint
-seg_model <- segmented(lm_model, seg.Z = ~ThermalTime, psi = 10)  # Initial guess for breakpoint at x=3
+seg_model <- segmented(lm_model, seg.Z = ~DayNumber, npsi=3)  # Initial guess for breakpoint at x=3
 
+# TODO: add in this segmentation & check coeffient
 # View the summary of the segmented model
 line_summary <- summary(seg_model)
 line_summary$coefficients[2,1]
 
 # Plot the data and the fitted piecewise model
-plot(test$ThermalTime, test$CropBiomass, pch = 16, col = "blue", main = "Piecewise Linear Fit", xlab = "x", ylab = "y")
-lines(test$ThermalTime, fitted(seg_model), col = "red", lwd = 2)  # Add the fitted line
+plot(test$DayNumber, test$CropBiomass, pch = 16, col = "blue", main = "Piecewise Linear Fit", xlab = "x", ylab = "y")
+lines(test$DayNumber, fitted(seg_model), col = "red", lwd = 2)  # Add the fitted line
 
 
 # Set seed for reproducibility -----------------------------------------------
@@ -150,6 +153,9 @@ climate_data <- climate_data[year == year] # Filter climate data for the current
                         trait_expression, 
                        '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode')
     
+    # add day by row number
+    sunflo[, RowNumber := .I]
+
     # Fit linear model
     lm_model <- lm(CropYeild ~ ThermalTime, data = sunflo)
     
@@ -161,7 +167,7 @@ climate_data <- climate_data[year == year] # Filter climate data for the current
     
     # pull growthrate from segmented model esimate
     # TODO: base growth rate based on climate --> add effect of investment in trait expression
-    growth_rate <- line_summary$coefficients[2,1]
+    growth_rate <- line_summary$coefficients[2,1]q
     
     
     
