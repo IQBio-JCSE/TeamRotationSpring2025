@@ -99,7 +99,7 @@ save(summary_stats_all_genes,summary_stats_terpenoid_genes, file = "results/summ
 
 # Save files for github push
 write.csv(summary_stats_all_genes, file='results/summary_stats_all_genes.csv', row.names=FALSE)
-write.csv(summary_stats_terpenoid_genes, file='results/summary_stats_terpenoid_genes', row.names=FALSE)
+write.csv(summary_stats_terpenoid_genes, file='results/summary_stats_terpenoid_genes.csv', row.names=FALSE)
 
 #### Extra commands that mught be useful ####
 

@@ -40,6 +40,13 @@ suffer_mortality <- function(population, pest_pressure) {
   return(survivors)
 }
 
+mortality_function <- function(temp, precip, pest_pressure, secondary_metabolite, is_domesticated = FALSE) {
+  climate_stress <- (temp > 30) + (precip < 300)
+  herbivory <- pest_pressure * (if (is_domesticated) 1.2 else 0.8) * (1 - secondary_metabolite)
+  mortality_base + 0.1 * climate_stress + herbivory
+}
+
+
 # Reproduction function -------------------------------------------------------
 reproduce <- function(population) {
   # Calculate number of offspring for each individual plant
@@ -59,5 +66,9 @@ reproduce <- function(population) {
   
   return(population)
 }
+
+
+
+
 
 # distrubution of trait across time

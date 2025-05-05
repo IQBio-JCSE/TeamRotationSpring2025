@@ -74,7 +74,7 @@ selection_proportion <- 0.2
 n_selected <- ceiling(plots * selection_proportion)
 
 # data storage ----------------------------------------------------------------
-# data structure for storing yield and trait expression
+# data structure for storing population data, yield, trait expression
 wild_population <- data.table(
   year = integer(),
   plot = integer(),
@@ -93,14 +93,39 @@ domesticated_population <- data.table(
 )
 pest_pressure_data <- data.table(
   year = integer(),
+  plot = integer(),
   day = integer(),
   pressure = numeric()
 )
 
-
-
-for (year in 1:years) {
+plot_yield <- numeric(plots) # Placeholder for yield values for each plot 
 #   initialize population
+
+
+# Initialize plot yield data
+wild_trait_expression <- numeric(plots) # Placeholder for trait expression values for each plot
+domesticated_trait_expression <- numeric(plots) # Placeholder for trait expression values for each plot
+wild_selected_plots_trait <- numeric(n_selected) # Placeholder for selected wild plots trait expression
+domesticated_selected_plots_trait <- numeric(n_selected) # Placeholder for selected domesticated plots trait expression
+
+wild_n_individuals <- initial_wild * plots # Total number of wild individuals
+domesticated_n_individuals <- initial_domesticated * plots # Total number of domesticated individuals
+
+# Initialize trait expression for wild and domesticated populations
+wild_trait_expression <- rnorm(wild_n_individuals, mean = 0.5, sd = 0.1) # Wild trait expression
+domesticated_trait_expression <- rnorm(domesticated_n_individuals, mean = 0.5, sd = 0.1) # Domesticated trait expression
+
+years <- 2 # Number of years to simulate
+
+
+# Main simulation loop --------------------------------------------------------
+
+# Loop through each year
+for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each year in climate data
+  length(unique(climate_data$year))
+  print(year)}
+
+climate_data <- climate_data[year == year] # Filter climate data for the current year
 
   for (plot in 1:plots) { # for each plot population
     
@@ -113,11 +138,15 @@ for (year in 1:years) {
     # pest pressure
     pest_pressure <- aphid_pest_pressure(climate_data[year == year & day == day, temperature])
     # store pest pressure
-    # pest_pressure_data <- rbind(pest_pressure_data, data.table(year = year, plot = plot, day = day, pressure = pest_pressure))
+    pest_pressure_data <- rbind(pest_pressure_data, 
+    data.table(year = year, 
+    plot = plot, 
+    day = day, 
+    pressure = pest_pressure))
     
     
     # sunflo
-    sunflo <- run_sunflo(climate_data,
+    sunflo <- run_sunflo(climate_data[year == year],
                         trait_expression, 
                        '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode')
     
