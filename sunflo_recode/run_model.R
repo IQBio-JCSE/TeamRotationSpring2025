@@ -24,6 +24,7 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
   Rainfall <- climate_data$Pluie #from the climate data file
   T_m <- (climate_data$Tmax + climate_data$Tmin)/2 #from climate file
   
+  # Read in evapotranspiration and radiation from climate file
   constant_climate_data <- readRDS(file.path(working_directory,"radiation_data_AUZ_2008.RDS"))
   PET <- constant_climate_data$ETP
   Radiation <- constant_climate_data$RAD
