@@ -39,7 +39,12 @@ root_depth <- function(prev_RootDepth, Tm, RootGrowthRate = 0.7, RootDepthLimit 
 # layer exceeds the field capacity, it is not actually needed to calculate the
 # amount of water available in the surface layer of soil
 water_available_before_drain <- function(prev_WaterAvailable, Rainfall,Irrigation,Evaporation, Transpiration) {
-  return (prev_WaterAvailable + Rainfall + Irrigation - Evaporation - Transpiration)
+  raw_calc <- (prev_WaterAvailable + Rainfall + Irrigation - Evaporation - Transpiration)
+  if  (raw_calc < 0) {
+    return (0)
+  } else {
+    return (raw_calc)
+  }
 }
 
 
@@ -175,7 +180,11 @@ water_stress_mineralization <- function(RelativeWaterContent, y0 = 0.2) {
 
 
 relative_water_content <- function(theta, theta_wp, theta_fc) {
-  return ((theta - theta_wp)/(theta_fc - theta_wp))
+  if (theta < theta_wp) {
+    return (0)
+  } else {
+    return ((theta - theta_wp)/(theta_fc - theta_wp))
+  }
 }
 
 ### NITROGEN ###
@@ -280,8 +289,11 @@ nitrogen_stress_expansion <- function(NNI) {
 nitrogen_stress_rue <- function(NitrogenSupplyRate, NitrogenDemandRate) {
   if (NitrogenDemandRate == 0) {
     return (1) #if there is no demand, there is no stress effect from nitrogen
+  } else if (NitrogenSupplyRate == 0) {
+    return(0) #no nitrogen available
+  } else {
+    return (NitrogenSupplyRate/NitrogenDemandRate)
   }
-  return (NitrogenSupplyRate/NitrogenDemandRate)
 }
 
 # Jenna note: I made this function up. It could be wrong!
@@ -314,7 +326,11 @@ nitrogen_stress_rue <- function(NitrogenSupplyRate, NitrogenDemandRate) {
 # distributed evenly across 1 ha, and that the water is also distributed evenly
 soil_nitrogen_concentration <- function(SoilNitrogenContent, WaterAvailable) {
   # water available should never be 0
-  return (SoilNitrogenContent/WaterAvailable)
+  if (WaterAvailable == 0) { #if there is no water, the effective concentration is 0
+    return (0)
+  } else {
+    return (SoilNitrogenContent/WaterAvailable)
+  }
 
 }
 
@@ -436,10 +452,15 @@ terp_expression_stress_rue <- function(Tm, pest_resistance_genetic) {
     terpene_expression  <- pest_resistance_genetic
   }
   norm_terpene_expression <- terpene_expression / max_terpene_expression # normalize terpenoid expression
-  print(constant * norm_terpene_expression)
   TerpeneStressRUE <- 1 - (constant * norm_terpene_expression)
-
-  return (TerpeneStressRUE)
+  
+  # TODO: should this have a lower limit of 1? Lower expression should not result
+  # in a faster growth rate... 
+  if (TerpeneStressRUE > 1) {
+    return (1)
+  } else {
+    return (TerpeneStressRUE)
+  }
 }
 
 # Optional TODO: add effect of pest presence on biomass... 
