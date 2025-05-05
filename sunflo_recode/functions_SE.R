@@ -206,6 +206,7 @@ radiation_use_efficiency <- function(thermal_time, thermal_stress_rue, water_str
   # Adjust RUE based on abiotic stresses
   env_factors <- c(thermal_stress_rue,water_stress_rue,nitrogen_stress_rue,pest_stress_rue)
   env_stress <- prod(env_factors)
+  # print(potentialRUE)
   rue <- potentialRUE * env_stress
   # rue <- potentialRUE * thermal_stress_rue * water_stress_rue * nitrogen_stress_rue
   # print(rue)

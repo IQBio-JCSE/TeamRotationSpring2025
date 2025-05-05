@@ -175,14 +175,13 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
     Transpiration[t] <- transpiration(WaterDemand[t], WaterStressConductance[t]) # NDY
     # NDY . don't actually need drainage in this function. BUT, add if statment, cannot exceed SoilWaterCapcity_fc
     WaterAvailable_beforedrainage[t] <- water_available_before_drain(WaterAvailable[t-1], Rainfall[t],Irrigation[t],Evaporation[t], Transpiration[t]) 
-    
+
     RootDepth[t] <- root_depth(RootDepth[t-1], T_m[t], RootGrowthRate, RootDepthLimit)
     Drainage[t] <- drainage(WaterAvailable_beforedrainage[t], RootDepth[t], SoilWaterCapacity_fc) # NDY , did not see this defined in the documentation
     WaterAvailable[t] <- WaterAvailable_beforedrainage[t] - Drainage[t]
-    
     WaterContentTheta[t] <- water_content_theta(WaterAvailable[t], RootDepth[t]) # NDY
     RelativeWaterContent[t] <- relative_water_content(WaterContentTheta[t], SoilWaterCapacity_wp, SoilWaterCapacity_fc) # NDY
-    
+
     WaterTotal[t] <- water_total(RootDepth[t], SoilWaterCapacity_available_water, SoilDensity, StoneContent) # NDY
     WaterStress[t] <- water_stress(WaterAvailable[t], WaterTotal[t]) # NDY
     WaterStressExpansion[t] <- water_stress_expansion(WaterStress[t]) # NDY
@@ -274,6 +273,7 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
     # leaf expansion, and water stress transpiration, according to SUNFLO pub.
     WaterStressRUE[t] <- water_stress_expansion(WaterStress[t]) # NDY
     
+    
     # Below is not defined, but if we assume that the nitrogen demand 
     NitrogenDemandRate[t] <- NitrogenDemand[t] 
     NitrogenStressRUE[t] <- nitrogen_stress_rue(NitrogenSupplyRate[t], NitrogenDemandRate[t]) # NDY Not well defined. ratio of daily update rate to daily demand 
@@ -287,6 +287,7 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
     RUE[t] <- radiation_use_efficiency(ThermalTime[t], ThermalStressRUE[t], 
                                        WaterStressRUE[t], NitrogenStressRUE[t],
                                        TerpeneStressRUE[t])
+    
     
     # Final output, crop yield for entire harvest
     CropBiomass[t] <- crop_biomass(PAR[t], RIE[t],RUE[t], CropBiomass[t-1])
@@ -323,8 +324,10 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
     RIE = RIE,
     RUE = RUE,
     CropBiomass = CropBiomass,
-    CropYield = CropYield_harvest,
-    TerpeneStressRUE = TerpeneStressRUE
+    CropYield = CropYield,
+    TerpeneStressRUE = TerpeneStressRUE,
+    pest_resistance_genetic = pest_resistance_genetic,
+    WaterAvailable = WaterAvailable
     # a_water_stress = a_water_stress
     #OilContent = OilContent
   )
