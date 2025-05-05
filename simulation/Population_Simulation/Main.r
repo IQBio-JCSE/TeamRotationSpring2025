@@ -20,14 +20,15 @@ source("sunflo_recode/climate_data.R")
 
 # import txt file first row as header, tab separated
 climate_data <- read.table(
-  "sunflo_french_repo/sunflo/data/AUZ_2014.txt",
+  "sunflo_recode/examples_for_presentation/truncated_AUZ_2006.txt",
   header = TRUE,
   sep = "\t",
   stringsAsFactors = FALSE
 )
 
 # test sunflo
-sunflo_wd =  '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode'
+# sunflo_wd =  '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode'
+sunflo_wd <- '/Users/jennastanislaw/Boulder/team_rotation/TeamRotationSpring2025/sunflo_recode'
 test <- run_sunflo(climate_data,
                    2, 
                   sunflo_wd)%>%
@@ -120,6 +121,15 @@ domesticated_trait_expression <- rnorm(domesticated_n_individuals, mean = 0.5, s
 
 years <- 2 # Number of years to simulate
 
+# Jenna: adding functions to process climate data
+climate_data_df <- climate_data_df <- read.table(
+  "climate_data/Georgia_clean_14_24.csv",
+  header = TRUE,
+  sep = ",",
+  stringsAsFactors = FALSE
+)
+individual_year <- c(14,15)
+
 
 # Main simulation loop --------------------------------------------------------
 
@@ -128,7 +138,9 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
   length(unique(climate_data$year))
   print(year)}
 
-climate_data <- climate_data[year == year] # Filter climate data for the current year
+#climate_data <- climate_data[year == year] # Filter climate data for the current year
+# Jenna: add function to process climate data for the year in a wy that agrees with sunflo
+  climate_data <- get_year_climate_data(climate_data_df, individual_year[year])
 
   for (plot in 1:plots) { # for each plot population
     
@@ -138,41 +150,47 @@ climate_data <- climate_data[year == year] # Filter climate data for the current
 
 
     for (day in 1:150) { # for each day in growing season
-    # pest pressure
-    pest_pressure <- aphid_pest_pressure(climate_data[year == year & day == day, temperature])
-    # store pest pressure
-    pest_pressure_data <- rbind(pest_pressure_data, 
-    data.table(year = year, 
-    plot = plot, 
-    day = day, 
-    pressure = pest_pressure))
-    
-    
-    # sunflo
-    sunflo <- run_sunflo(climate_data[year == year],
-                        trait_expression, 
-                       '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode')
-    
-    # add day by row number
-    sunflo[, RowNumber := .I]
-
-    # Fit linear model
-    lm_model <- lm(CropYeild ~ ThermalTime, data = sunflo)
-    
-    # Fit piecewise linear model with breakpoint
-    seg_model <- segmented(lm_model, seg.Z = ~ThermalTime, psi = 10)  # Initial guess for breakpoint at x=3
-    
-    # summary of segmented model
-    line_summary <- summary(seg_model)
-    
-    # pull growthrate from segmented model esimate
-    # TODO: base growth rate based on climate --> add effect of investment in trait expression
-    growth_rate <- line_summary$coefficients[2,1]q
-    
-    
-    
-
-    # death related to intrinisic propbability of death 
+      # pest pressure
+      climate_data$temperature <- (climate_data$Tmax + climate_data$Tmin)/2
+      pest_pressure <- aphid_pest_pressure( climate_data$temperature)
+      #pest_pressure <- aphid_pest_pressure(climate_data[Year == year & Day == day]$temperature)
+      # store pest pressure
+      pest_pressure_data <- rbind(pest_pressure_data, 
+      data.table(year = year, 
+      plot = plot, 
+      day = day, 
+      pressure = pest_pressure))
+      
+      
+      # sunflo
+      # sunflo_wd =  '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode'
+      sunflo_wd <- '/Users/jennastanislaw/Boulder/team_rotation/TeamRotationSpring2025/sunflo_recode'
+      
+      sunflo <- run_sunflo(climate_data[year == year],
+                          trait_expression, 
+                          sunflo_wd)
+      
+      # add day by row number
+      # sunflo[, RowNumber := .I]
+      sunflo$RowNumber <- 1:nrow(sunflo)
+  
+      # Fit linear model
+      lm_model <- lm(CropYeild ~ ThermalTime, data = sunflo)
+      
+      # Fit piecewise linear model with breakpoint
+      seg_model <- segmented(lm_model, seg.Z = ~ThermalTime, psi = 10)  # Initial guess for breakpoint at x=3
+      
+      # summary of segmented model
+      line_summary <- summary(seg_model)
+      
+      # pull growthrate from segmented model esimate
+      # TODO: base growth rate based on climate --> add effect of investment in trait expression
+      growth_rate <- line_summary$coefficients[2,1]
+      
+      
+      
+  
+      # death related to intrinisic propbability of death 
 
 
     }
