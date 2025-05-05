@@ -22,11 +22,15 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
   # Environment variables which are predefined or passed in :
   
   Rainfall <- climate_data$Pluie #from the climate data file
-  PET <- climate_data$ETP #from the climate data file as ETP
   T_m <- (climate_data$Tmax + climate_data$Tmin)/2 #from climate file
-  Radiation <- climate_data$RAD #from climate file
-  # TODO: add pest climate info
   
+  # Read in evapotranspiration and radiation from climate file
+  constant_climate_data <- readRDS(file.path(working_directory,"radiation_data_AUZ_2008.RDS"))
+  PET <- constant_climate_data$ETP
+  Radiation <- constant_climate_data$RAD
+  # PET <- climate_data$ETP #from the climate data file as ETP
+  # Radiation <- climate_data$RAD #from climate file
+
   harvest <- nrow(climate_data)# Length of harvest, predefined and calculated based on the climate file. 
   
   ## TODO: Intro a variable genetic parameters
