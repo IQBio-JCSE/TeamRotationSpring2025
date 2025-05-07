@@ -2,28 +2,55 @@
 
 
 # climate data ----------------------------------------------------------------
-georgia_climate <- rbind(read.csv("climate_data/Georgia_clean_90_00.csv"),
-                         read.csv("climate_data/Georgia_clean_14_24.csv"))
-minnesota_climate <- rbind(read.csv("climate_data/Minnesota_clean_90_00.csv"),
-                           read.csv("climate_data/Minnesota_clean_14_24.csv"))
+# georgia_climate <- rbind(read.csv("climate_data/Georgia_clean_90_00.csv"),
+#                          read.csv("climate_data/Georgia_clean_14_24.csv"))
+# minnesota_climate <- rbind(read.csv("climate_data/Minnesota_clean_90_00.csv"),
+#                            read.csv("climate_data/Minnesota_clean_14_24.csv"))
 
-georgia_climate_p1 <- read.csv("climate_data/Georgia_clean_90_00.csv")
-georgia_climate_p2 <- read.csv("climate_data/Georgia_clean_14_24.csv")
-minnesota_climate_p1 <- read.csv("climate_data/Minnesota_clean_90_00.csv")
-minnesota_climate_p2 <- read.csv("climate_data/Minnesota_clean_14_24.csv")
+georgia_climate_p1 <- read.csv("climate_data/Georgia_clean_90_00.csv")%>%
+  mutate(StudyPeriod = 1)
 
+georgia_climate_p2 <- read.csv("climate_data/Georgia_clean_14_24.csv")%>%
+  mutate(StudyPeriod = 2)
+
+
+minnesota_climate_p1 <- read.csv("climate_data/Minnesota_clean_90_00.csv")%>%
+  mutate(StudyPeriod = 1)
+minnesota_climate_p2 <- read.csv("climate_data/Minnesota_clean_14_24.csv")%>%
+  mutate(StudyPeriod = 2)
+
+# minnesota_climate_p3 <- read.csv("climate_data/Minnesota_clean_98_23.csv")
+
+# Add location column
 georgia_climate <- rbind(georgia_climate_p1,georgia_climate_p2)%>%
   mutate(Location = "Georgia")
 minnesota_climate <- rbind(minnesota_climate_p1, minnesota_climate_p2) %>%
   mutate(Location = "Minnesota")
 
 
+# Combine climate data
 climate_data <- rbind(georgia_climate,minnesota_climate) %>%
   mutate(Year = ifelse(Year < 50, Year + 2000, Year + 1900))  %>%
-  
   mutate(Date = as.Date(paste(Year, Month, Day, sep = "-"), format = "%Y-%m-%d"))%>%
-  mutate(ID = paste(Location, Date, sep = "_"))  %>%
- filter(Month %in% 03:12)  # Filter for growing season (April to October)
+  mutate(ID = paste(Location, StudyPeriod, Date, sep = "_"))  %>%
+  mutate(TMAX = TMAX/10) %>%
+  mutate(TMIN = TMIN/10) %>%
+  mutate(Temp_mean = (TMAX + TMIN)/2)  %>% 
+  filter(Month %in% 04:08)  %>% # Filter for growing season (April to October)
+  group_by(Year) %>%  # Group by Year
+  mutate(GrowingSeasonDay = row_number()) %>%  # Assign sequential numbers within each year
+  ungroup()  # Remove grouping
+
+# export climate data as csv
+write.csv(climate_data, "climate_data/Climate_data.csv")
+
+
+
+
+
+
+
+
 
 
 
@@ -113,40 +140,26 @@ ggplot(climate_data, aes(x = ID, y = TMAX/10, group = Location, color = as.facto
     # panel.grid.major.y = element_blank()   # Removes major horizontal grid lines
   )
 
-
-# Group data by 7-day intervals and calculate the average TMAX
-climate_data_weekly <- climate_data %>%
-  group_by(Location, Year) %>%  # Group by Year, Location, and Week
-  mutate(Week = ceiling(Day / 7)) %>%  # Create a Week column (1 = days 1-7, 2 = days 8-14, etc.)
-  mutate(Loc_Year_Wk = paste(Location, Year, Week, sep = '_')) %>%
-  ungroup()  %>%
-  group_by(Location, Year, Week, Loc_Year_Wk)  %>%
-  summarize(Avg_TMAX = mean(TMAX, na.rm = TRUE))  # Calculate average TMAX for each week
-
-# Plot the smoothed line
-ggplot(climate_data_weekly, aes(x = Loc_Year_Wk, y = Avg_TMAX, group = Location, color = Location)) +
-  geom_line() +
-  labs(
-    title = "Weekly Average TMAX",
-    x = "Week",
-    y = "Average Temperature (°C)",
-    color = "Location"
-  ) +
-  theme_minimal()
-
-
-
-# plot temperature & precipitation across    
-plot(climate_data$day[climate_data$year==2], climate_data$temperature[climate_data$year==2], type = "l", col = "#d09220", lwd = 2,
-     xlab = "Days", ylab = "Temperature (Cº)",
-     main = "Temperature Across Study Period")
-# TODO: add precip & add all study years
-
-# plot precipitation across    
-plot(climate_data$day[climate_data$year==2], climate_data$rainfall[climate_data$year==2], type = "l", col = "darkblue", lwd = 2,
-     xlab = "Days", ylab = "Precipitation (mm)",
-     main = "Precipitation Across Study Period")
-# TODO: accumulation
+# weekly --------------------------------------------------------------------------------
+# # Group data by 7-day intervals and calculate the average TMAX
+# climate_data_weekly <- climate_data %>%
+#   group_by(Location, Year) %>%  # Group by Year, Location, and Week
+#   mutate(Week = ceiling(Day / 7)) %>%  # Create a Week column (1 = days 1-7, 2 = days 8-14, etc.)
+#   mutate(Loc_Year_Wk = paste(Location, Year, Week, sep = '_')) %>%
+#   ungroup()  %>%
+#   group_by(Location, Year, Week, Loc_Year_Wk)  %>%
+#   summarize(Avg_TMAX = mean(TMAX, na.rm = TRUE))  # Calculate average TMAX for each week
+# 
+# # Plot the smoothed line
+# ggplot(climate_data_weekly, aes(x = Loc_Year_Wk, y = Avg_TMAX, group = Location, color = Location)) +
+#   geom_line() +
+#   labs(
+#     title = "Weekly Average TMAX",
+#     x = "Week",
+#     y = "Average Temperature (°C)",
+#     color = "Location"
+#   ) +
+#   theme_minimal()
 
 
 
@@ -162,97 +175,124 @@ plot(climate_data$day[climate_data$year==2], climate_data$rainfall[climate_data$
 
 
 
-# example code:
 
-# Climate data ----------------------------------------------------------------
-georgia_climate <- rbind(read.csv("climate_data/Georgia_clean_90_00.csv"),
-                         read.csv("climate_data/Georgia_clean_14_24.csv"))
-minnesota_climate <- rbind(read.csv("climate_data/Minnesota_clean_90_00.csv"),
-                           read.csv("climate_data/Minnesota_clean_14_24.csv"))
+# # plot temperature & precipitation across     -----------------------------------------------
+# plot(climate_data$day[climate_data$year==2], climate_data$temperature[climate_data$year==2], type = "l", col = "#d09220", lwd = 2,
+#      xlab = "Days", ylab = "Temperature (Cº)",
+#      main = "Temperature Across Study Period")
+# # TODO: add precip & add all study years
+# 
+# # plot precipitation across    
+# plot(climate_data$day[climate_data$year==2], climate_data$rainfall[climate_data$year==2], type = "l", col = "darkblue", lwd = 2,
+#      xlab = "Days", ylab = "Precipitation (mm)",
+#      main = "Precipitation Across Study Period")
+# # TODO: accumulation
 
-# Add location column
-georgia_climate <- georgia_climate %>%
-  mutate(Location = "Georgia")
-minnesota_climate <- minnesota_climate %>%
-  mutate(Location = "Minnesota")
 
-# Combine climate data
-climate_data <- rbind(georgia_climate, minnesota_climate) %>%
-  mutate(Year = ifelse(Year < 50, Year + 2000, Year + 1900)) %>%
-  mutate(Date = as.Date(paste(Year, Month, Day, sep = "-"), format = "%Y-%m-%d")) %>%
-  mutate(ID = paste(Location, Date, sep = "_")) %>%
-  filter(Month %in% 3:12)  # Filter for growing season (March to December)
 
-# Plot Boston maximum temperature ---------------------------------------------
-ggplot(data = BOS_climate) + 
-  geom_line(mapping = aes(x = date, y = tmax, col = station)) +
-  labs(x = "Date", y = "Maximum Temperature (C)")
 
-# Clip data to 1981-2010 ------------------------------------------------------
-BOS_climrecent <- BOS_climate %>%
-  filter(year(date) > 1980 & year(date) < 2011)
 
-# Plot Phoenix and Boston maximum temperature, 1981-2010
-ggplot(data = BOS_climrecent) + 
-  geom_line(mapping = aes(x = date, y = tmax)) +
-  labs(x = "Date", y = "Maximum Temperature (C)")
 
-# Calculate 30-year climatology -----------------------------------------------
-BOS_tmaxClimatology <- BOS_climate %>%
-  filter(year(date) > 1980 & year(date) < 2011) %>%
-  mutate(month_day = format(date, "%m-%d")) %>%
-  group_by(month_day) %>%
-  summarize(tmax_mean = mean(tmax, na.rm = TRUE))
 
-# Plot Boston climatological maximum temperature, 1981-2010
-ggplot(data = BOS_tmaxClimatology) + 
-  geom_line(mapping = aes(x = as.Date(month_day, format = "%m-%d"), 
-                          y = tmax_mean)) + 
-  labs(x = "Date", y = "Maximum Temperature (C)") +
-  scale_x_date(date_labels = "%b")
 
-# Calculate daily departures from climatology ---------------------------------
-BOS_tmaxDiff <- BOS_climate %>%
-  filter(year(date) > 1980 & year(date) < 2011) %>%
-  mutate(month_day = format(date, "%m-%d")) %>%
-  left_join(BOS_tmaxClimatology, by = "month_day") %>%
-  mutate(tmax_diff = tmax - tmax_mean)
 
-# Plot Boston difference from climatological maximum temperature, 1981-2010
-ggplot(data = BOS_tmaxDiff) + 
-  geom_line(mapping = aes(x = date, y = tmax_diff)) + 
-  labs(x = "Date", y = "Temperature difference from 30-year average (C)")
 
-# Phoenix climatology and departures ------------------------------------------
-PHO_tmaxClimatology <- PHO_climate %>%
-  filter(year(date) > 1980 & year(date) < 2011) %>%
-  mutate(month_day = format(date, "%m-%d")) %>%
-  group_by(month_day) %>%
-  summarize(tmax_mean = mean(tmax, na.rm = TRUE))
 
-PHO_tmaxDiff <- PHO_climate %>%
-  filter(year(date) > 1980 & year(date) < 2011) %>%
-  mutate(month_day = format(date, "%m-%d")) %>%
-  left_join(PHO_tmaxClimatology, by = "month_day") %>%
-  mutate(tmax_diff = tmax - tmax_mean)
 
-# Plot Boston and Phoenix predictability --------------------------------------
-ggplot(data = BOS_tmaxDiff) + 
-  geom_density(mapping = aes(x = tmax_diff)) +
-  labs(x = "Daily max temp difference from 30-year normal [C]", y = "Probability")
 
-ggplot(data = PHO_tmaxDiff) + 
-  geom_density(mapping = aes(x = tmax_diff)) +
-  labs(x = "Daily max temp difference from 30-year normal [C]", y = "Probability")
 
-# Calculate statistics for predictability -------------------------------------
-mean(BOS_tmaxDiff$tmax_diff)  # Mean departure for Boston
-sd(BOS_tmaxDiff$tmax_diff)    # Standard deviation for Boston
-quantile(BOS_tmaxDiff$tmax_diff, c(0.05, 0.95))  # 5% tails for Boston
 
-mean(PHO_tmaxDiff$tmax_diff)  # Mean departure for Phoenix
-sd(PHO_tmaxDiff$tmax_diff)    # Standard deviation for Phoenix
-quantile(PHO_tmaxDiff$tmax_diff, c(0.05, 0.95))  # 5% tails for Phoenix
+# # example code:
+# 
+# # Plot Boston maximum temperature ---------------------------------------------
+# ggplot(data = BOS_climate) + 
+#   geom_line(mapping = aes(x = date, y = tmax, col = station)) +
+#   labs(x = "Date", y = "Maximum Temperature (C)")
+# 
+# # Clip data to 1981-2010 ------------------------------------------------------
+# BOS_climrecent <- BOS_climate %>%
+#   filter(year(date) > 1980 & year(date) < 2011)
+# 
+# # Plot Phoenix and Boston maximum temperature, 1981-2010
+# ggplot(data = BOS_climrecent) + 
+#   geom_line(mapping = aes(x = date, y = tmax)) +
+#   labs(x = "Date", y = "Maximum Temperature (C)")
+# 
+# # Calculate 30-year climatology -----------------------------------------------
+# BOS_tmaxClimatology <- BOS_climate %>%
+#   filter(year(date) > 1980 & year(date) < 2011) %>%
+#   mutate(month_day = format(date, "%m-%d")) %>%
+#   group_by(month_day) %>%
+#   summarize(tmax_mean = mean(tmax, na.rm = TRUE))
+# 
+# # Plot Boston climatological maximum temperature, 1981-2010
+# ggplot(data = BOS_tmaxClimatology) + 
+#   geom_line(mapping = aes(x = as.Date(month_day, format = "%m-%d"), 
+#                           y = tmax_mean)) + 
+#   labs(x = "Date", y = "Maximum Temperature (C)") +
+#   scale_x_date(date_labels = "%b")
+# 
+# # Calculate daily departures from climatology ---------------------------------
+# BOS_tmaxDiff <- BOS_climate %>%
+#   filter(year(date) > 1980 & year(date) < 2011) %>%
+#   mutate(month_day = format(date, "%m-%d")) %>%
+#   left_join(BOS_tmaxClimatology, by = "month_day") %>%
+#   mutate(tmax_diff = tmax - tmax_mean)
+# 
+# # Plot Boston difference from climatological maximum temperature, 1981-2010
+# ggplot(data = BOS_tmaxDiff) + 
+#   geom_line(mapping = aes(x = date, y = tmax_diff)) + 
+#   labs(x = "Date", y = "Temperature difference from 30-year average (C)")
+# 
+# # Phoenix climatology and departures ------------------------------------------
+# PHO_tmaxClimatology <- PHO_climate %>%
+#   filter(year(date) > 1980 & year(date) < 2011) %>%
+#   mutate(month_day = format(date, "%m-%d")) %>%
+#   group_by(month_day) %>%
+#   summarize(tmax_mean = mean(tmax, na.rm = TRUE))
+# 
+# PHO_tmaxDiff <- PHO_climate %>%
+#   filter(year(date) > 1980 & year(date) < 2011) %>%
+#   mutate(month_day = format(date, "%m-%d")) %>%
+#   left_join(PHO_tmaxClimatology, by = "month_day") %>%
+#   mutate(tmax_diff = tmax - tmax_mean)
+# 
+# # Plot Boston and Phoenix predictability --------------------------------------
+# ggplot(data = BOS_tmaxDiff) + 
+#   geom_density(mapping = aes(x = tmax_diff)) +
+#   labs(x = "Daily max temp difference from 30-year normal [C]", y = "Probability")
+# 
+# ggplot(data = PHO_tmaxDiff) + 
+#   geom_density(mapping = aes(x = tmax_diff)) +
+#   labs(x = "Daily max temp difference from 30-year normal [C]", y = "Probability")
+# 
+# # Calculate statistics for predictability -------------------------------------
+# mean(BOS_tmaxDiff$tmax_diff)  # Mean departure for Boston
+# sd(BOS_tmaxDiff$tmax_diff)    # Standard deviation for Boston
+# quantile(BOS_tmaxDiff$tmax_diff, c(0.05, 0.95))  # 5% tails for Boston
+# 
+# mean(PHO_tmaxDiff$tmax_diff)  # Mean departure for Phoenix
+# sd(PHO_tmaxDiff$tmax_diff)    # Standard deviation for Phoenix
+# quantile(PHO_tmaxDiff$tmax_diff, c(0.05, 0.95))  # 5% tails for Phoenix
+# 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

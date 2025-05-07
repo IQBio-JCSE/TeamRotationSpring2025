@@ -259,14 +259,15 @@ nitrogen_demand <- function(CropNitrogenConcentrationCritical, CropBiomass) {
 # a second term called INNI, which is the instantaneous NNI
 nitrogen_nutrition_index <- function(NitrogenSupply_all, NitrogenDemand) {
   # Here, NitrogenSupply is a vector for ALL timepoints
-  if (NitrogenDemand == 0) {
+  # if (NitrogenDemand == 0) {
+  if (is.na(NitrogenDemand) || NitrogenDemand == 0) {
     return (0)
   }
   return (sum(NitrogenSupply_all)/NitrogenDemand)
 }
 
 I_nitrogen_nutrition_index <- function(NitrogenSupply, NitrogenDemand) {
-  if (NitrogenDemand == 0) {
+  if (is.na(NitrogenDemand) || NitrogenDemand == 0) {
     return (1)
   }
   return (NitrogenSupply/NitrogenDemand)
@@ -287,7 +288,7 @@ nitrogen_stress_expansion <- function(NNI) {
 # uptake rate to the daily critical nitrogen amount neeaded to satisfy the demand.
 # NitrogenStressRUEt = NitrogenSupplyRatet/NitrogenDemandRatet
 nitrogen_stress_rue <- function(NitrogenSupplyRate, NitrogenDemandRate) {
-  if (NitrogenDemandRate == 0) {
+  if (is.na(NitrogenDemandRate) || NitrogenDemandRate == 0) {
     return (1) #if there is no demand, there is no stress effect from nitrogen
   } else if (NitrogenSupplyRate == 0) {
     return(0) #no nitrogen available

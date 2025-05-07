@@ -306,40 +306,40 @@ result_plot$data
 
 ggsave("simulation_plot.png", plot = result_plot, width = 10, height = 6)
 
-run_simulations_parallel <- function(num_simulations, time_steps, pest_pressure) {
-  # Detect the number of available cores
-  num_cores <- detectCores() - 1  # Leave one core free for system processes
-  
-  # Set up a cluster
-  cl <- makeCluster(num_cores)
-  
-  # Load required libraries on each worker
-  clusterEvalQ(cl, {
-    library(data.table)
-    library(ggplot2)
-  })
-  
-  # Export necessary functions and variables to the cluster
-  clusterExport(cl, varlist = c("initialize_population", "grow", "reproduce", 
-                                "suffer_mortality", "plot_population", "simulate", 
-                                "time_steps", "pest_pressure", "num_wild_population", 
-                                "num_domesticated_population"), envir = environment())
-  
-  # Run simulations in parallel
-  results_list <- parLapply(cl, 1:num_simulations, function(i) {
-    simulate(time_steps, pest_pressure)
-  })
-  
-  # Stop the cluster
-  stopCluster(cl)
-  
-  return(results_list)
-}
-
-# Run 1000 simulations in parallel
-num_simulations <- 100
-time_steps <- 100
-pest_pressure <- 0.5
+# run_simulations_parallel <- function(num_simulations, time_steps, pest_pressure) {
+#   # Detect the number of available cores
+#   num_cores <- detectCores() - 1  # Leave one core free for system processes
+#   
+#   # Set up a cluster
+#   cl <- makeCluster(num_cores)
+#   
+#   # Load required libraries on each worker
+#   clusterEvalQ(cl, {
+#     library(data.table)
+#     library(ggplot2)
+#   })
+#   
+#   # Export necessary functions and variables to the cluster
+#   clusterExport(cl, varlist = c("initialize_population", "grow", "reproduce", 
+#                                 "suffer_mortality", "plot_population", "simulate", 
+#                                 "time_steps", "pest_pressure", "num_wild_population", 
+#                                 "num_domesticated_population"), envir = environment())
+#   
+#   # Run simulations in parallel
+#   results_list <- parLapply(cl, 1:num_simulations, function(i) {
+#     simulate(time_steps, pest_pressure)
+#   })
+#   
+#   # Stop the cluster
+#   stopCluster(cl)
+#   
+#   return(results_list)
+# }
+# 
+# # Run 1000 simulations in parallel
+# num_simulations <- 100
+# time_steps <- 100
+# pest_pressure <- 0.5
 
 all_results <- run_simulations_parallel(num_simulations, time_steps, pest_pressure)
 # TODO aggregate results or visualize

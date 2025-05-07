@@ -21,8 +21,10 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
 
   # Environment variables which are predefined or passed in :
   
-  Rainfall <- climate_data$Pluie #from the climate data file
-  T_m <- (climate_data$Tmax + climate_data$Tmin)/2 #from climate file
+  # Rainfall <- climate_data$Pluie #from the climate data file
+  Rainfall <- climate_data$PRCP #from the climate data file
+  # T_m <- (climate_data$Tmax + climate_data$Tmin)/2 #from climate file
+  T_m <- (climate_data$TMAX + climate_data$TMIN)/2 #from climate file
   
   # Read in evapotranspiration and radiation from climate file
   constant_climate_data <- readRDS(file.path(working_directory,"radiation_data_AUZ_2008.RDS"))
@@ -308,8 +310,8 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
   
   # Save into output dataframe
   output <- data.frame(
-    TemperatureAirMin = climate_data$Tmin,
-    TemperatureAirMax = climate_data$Tmax,
+    TemperatureAirMin = climate_data$TMIN,
+    TemperatureAirMax = climate_data$TMAX,
     TemperatureAirMean = T_m,
     Radiation = Radiation,
     PET = PET,
