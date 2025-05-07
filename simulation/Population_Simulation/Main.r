@@ -149,7 +149,7 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
 
 
 
-    for (day in 1:150) { # for each day in growing season
+    # for (day in 1:150) { # for each day in growing season
       # pest pressure
       climate_data$temperature <- (climate_data$Tmax + climate_data$Tmin)/2
       pest_pressure <- aphid_pest_pressure( climate_data$temperature)
@@ -175,7 +175,8 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
       sunflo$RowNumber <- 1:nrow(sunflo)
   
       # Fit linear model
-      lm_model <- lm(CropYeild ~ ThermalTime, data = sunflo)
+      # lm_model <- lm(CropYeild ~ ThermalTime, data = sunflo)
+      lm_model <- lm(CropYield ~ ThermalTime, data = sunflo)
       
       # Fit piecewise linear model with breakpoint
       seg_model <- segmented(lm_model, seg.Z = ~ThermalTime, psi = 10)  # Initial guess for breakpoint at x=3
@@ -193,7 +194,7 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
       # death related to intrinisic propbability of death 
 
 
-    }
+    # }
     # plot yield <-- TODO what are the sunflo unit here?
     
     # store yield and trait expression

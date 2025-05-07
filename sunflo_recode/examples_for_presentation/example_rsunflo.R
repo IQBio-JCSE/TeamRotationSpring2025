@@ -69,3 +69,19 @@ climate_data_clean <- read.table(
 tmp <- climate_data_2006[c("Annee","Mois","Jour","ETP","RAD")]
 saveRDS(tmp, "radiation_data_AUZ_2008.RDS" )
 readRDS("radiation_data_AUZ_2008.RDS")
+
+
+
+climate_data_df <- read.table(
+  "climate_data/Georgia_clean_14_24.csv",
+  header = TRUE,
+  sep = ",",
+  stringsAsFactors = FALSE
+)
+clim_14 <- get_year_climate_data(climate_data_df, 14)
+out_14 <- run_sunflo(clim_14, 0, working_directory)
+plot(out_14$CropBiomass)
+
+clim_15 <- get_year_climate_data(climate_data_df, 15)
+out_15 <- run_sunflo(clim_15, 0, working_directory)
+plot(out_15$CropBiomass)
