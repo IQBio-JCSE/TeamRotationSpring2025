@@ -15,37 +15,37 @@ source("simulation/Population_Simulation/Functions.r") # Load helper functions
 # Load sunflo model/function
 source("sunflo_recode/run_model.R") # Load sunflower model
 
-# find all files in sunflo_recode directory sunflo_recode/examples_for_presentation that start with "terp_stress_" .csv
-# Define the directory path
-sunflo_output_directory_path <- "sunflo_recode/examples_for_presentation"
-
-# Find all files that match the pattern
-files <- list.files(path = sunflo_output_directory_path, pattern = "^terp_stress_.*\\.csv$", full.names = TRUE)
-
-sunflo <- read_csv(files[1])
-
-# terpinoid numbers
-# [1] "0 0"
-# [1] "0.5 0.166666666666667"
-# [1] "1 0.333333333333333"
-# [1] "1.5 0.5"
-# [1] "2 0.666666666666667"
-# [1] "2.5 0.833333333333333"
-# [1] "3 1"
-
-# Define the terpinoid values
-terpinoid_values <- c(0, 0.16667, 0.33333, 0.5, 0.66667, 0.83333, 1)
-
-# Function to find the closest index
-get_closest_index <- function(mean_trait_value) {
-  # Calculate the absolute difference between mean_trait_value and each terpinoid value
-  differences <- abs(terpinoid_values - mean_trait_value)
-  
-  # Find the index of the smallest difference
-  closest_index <- which.min(differences)
-  
-  return(closest_index)
-}
+# # find all files in sunflo_recode directory sunflo_recode/examples_for_presentation that start with "terp_stress_" .csv
+# # Define the directory path
+# sunflo_output_directory_path <- "sunflo_recode/examples_for_presentation"
+# 
+# # Find all files that match the pattern
+# files <- list.files(path = sunflo_output_directory_path, pattern = "^terp_stress_.*\\.csv$", full.names = TRUE)
+# 
+# sunflo <- read_csv(files[1])
+# 
+# # terpinoid numbers
+# # [1] "0 0"
+# # [1] "0.5 0.166666666666667"
+# # [1] "1 0.333333333333333"
+# # [1] "1.5 0.5"
+# # [1] "2 0.666666666666667"
+# # [1] "2.5 0.833333333333333"
+# # [1] "3 1"
+# 
+# # Define the terpinoid values
+# terpinoid_values <- c(0, 0.16667, 0.33333, 0.5, 0.66667, 0.83333, 1)
+# 
+# # Function to find the closest index
+# get_closest_index <- function(mean_trait_value) {
+#   # Calculate the absolute difference between mean_trait_value and each terpinoid value
+#   differences <- abs(terpinoid_values - mean_trait_value)
+#   
+#   # Find the index of the smallest difference
+#   closest_index <- which.min(differences)
+#   
+#   return(closest_index)
+# }
 
 
 # sunflo <- read_csv(files[1]) %>%
@@ -54,6 +54,9 @@ get_closest_index <- function(mean_trait_value) {
 
 # climate data
 climate_data <- read.csv("climate_data/Climate_data.csv")
+
+# trait values
+source("simulation/Population_Simulation/Population_Gentic_Traits.R")
 
 # Set seed for reproducibility -----------------------------------------------
 set.seed(123)

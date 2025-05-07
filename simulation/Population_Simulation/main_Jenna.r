@@ -157,7 +157,7 @@ climate_data <- climate_data[year == year] # Filter climate data for the current
     sunflo[, RowNumber := .I]
 
     # Fit linear model
-    lm_model <- lm(CropYeild ~ ThermalTime, data = sunflo)
+    lm_model <- lm(CropYield ~ ThermalTime, data = sunflo)
     
     # Fit piecewise linear model with breakpoint
     seg_model <- segmented(lm_model, seg.Z = ~ThermalTime, psi = 10)  # Initial guess for breakpoint at x=3

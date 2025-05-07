@@ -39,7 +39,10 @@ climate_data <- rbind(georgia_climate,minnesota_climate) %>%
   filter(Month %in% 04:08)  %>% # Filter for growing season (April to October)
   group_by(Year) %>%  # Group by Year
   mutate(GrowingSeasonDay = row_number()) %>%  # Assign sequential numbers within each year
-  ungroup()  # Remove grouping
+  ungroup()  %>% # Remove grouping
+  # filter GrowingSeasonDay > 150
+  filter(GrowingSeasonDay <= 150) # Filter for first 150 days of growing season
+
 
 # export climate data as csv
 write.csv(climate_data, "climate_data/Climate_data.csv")
