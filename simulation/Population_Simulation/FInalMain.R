@@ -403,8 +403,32 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
                                       domesticated_trait_mean_expression, # wild_trait_expression or domesticated_trait_expression
                                       '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode') %>%
       mutate(GrowingSeasonDay = row_number())
+    
+
+    
+
+    # Open PNG device
+    # png(sprintf("simulation/results/Yield_%s_Domesticated_%d_plot%d.png",
+    #                 location,
+    #                 unique(climate_data$Year)[year], 
+    #                 plot), 
+    #     width = 700, 
+    #     height = 500,
+    #     bg = "transparent")  
+    tiff(sprintf("simulation/results/Yield_%s_Domesticated_%d_plot%d.png",
+             location,
+             unique(climate_data$Year)[year], 
+             plot), 
+     width = 1000,  # Increase width
+     height = 800,  
+     res = 400, 
+     bg = "transparent",
+     pointsize = 5,
+     compression = 'none')
     plot(domesticated_sunflo$GrowingSeasonDay, domesticated_sunflo$CropYield,
          pch = 20,
+         size = .5,
+        
          col = "#814627",
          # ylab = expression("Grain Yield" ~ (q.ha^-1)),
          ylab = expression("Grain Yield (q/ha)"),
@@ -415,6 +439,7 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
                         unique(climate_data$Year)[year], 
                         plot, 
                         round(domesticated_trait_mean_expression, digits = 3))) 
+    dev.off() 
 
     # # Fit a linear model
     # domesticated_lm_model <- lm(CropBiomass ~ DayNumber, data = sunflo)
@@ -429,29 +454,29 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
     
     
     
-    for (day in 1:nrow(climate_data_year)) { # for each day in growing season
-
-      # death related to intrinsic probability of death
-      wild_mortality <- mortality_function(climate_data_year$TMAX[day], climate_data_year$PRCP[day], pest_pressure, wild_trait_mean_expression )
-      plot(wild_mortality,
-           pch = 20,
-           col = '#DA9D20',
-           ylim = c(0,1.4), 
-           ylab = 'mortality',
-           xlab = 'growing season days',
-           main = 'mortality across growing season for wild population'
-      )  
-      
-      domesticated_mortality <-  mortality_function(climate_data_year$TMAX[day], climate_data_year$PRCP[day], pest_pressure, domesticated_trait_mean_expression, TRUE )
-      plot(domesticated_mortality,
-           pch = 20,
-           col = "#814627",
-           ylim = c(0,1.4), 
-           ylab = 'mortality',
-           xlab = 'growing season days',
-           main = 'mortality across growing season for domesticated population'
-      )
-    }
+    # for (day in 1:nrow(climate_data_year)) { # for each day in growing season
+    # 
+    #   # death related to intrinsic probability of death
+    #   wild_mortality <- mortality_function(climate_data_year$TMAX[day], climate_data_year$PRCP[day], pest_pressure, wild_trait_mean_expression )
+    #   plot(wild_mortality,
+    #        pch = 20,
+    #        col = '#DA9D20',
+    #        ylim = c(0,1.4), 
+    #        ylab = 'mortality',
+    #        xlab = 'growing season days',
+    #        main = 'mortality across growing season for wild population'
+    #   )  
+    #   
+    #   domesticated_mortality <-  mortality_function(climate_data_year$TMAX[day], climate_data_year$PRCP[day], pest_pressure, domesticated_trait_mean_expression, TRUE )
+    #   plot(domesticated_mortality,
+    #        pch = 20,
+    #        col = "#814627",
+    #        ylim = c(0,1.4), 
+    #        ylab = 'mortality',
+    #        xlab = 'growing season days',
+    #        main = 'mortality across growing season for domesticated population'
+    #   )
+    # }
     
     
     # dom_sunflo <- read_csv(files[get_closest_index(mean(population$trait[population$group=='Domesticated Population']))]) %>%
@@ -465,11 +490,11 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
     # TODO sunflo yeild units
     # 1 q.ha⁻¹ = 100 kg/ha
     
-    wild_upper_bound <- mean(population$trait[population$group=='Wild Population']) + sd(population$trait[population$group=='Wild Population'])
-    wild_lower_bound <- mean(population$trait[population$group=='Wild Population']) - sd(population$trait[population$group=='Wild Population'])
-    domesticated_upper_bound <- mean(population$trait[population$group=='Domesticated Population']) + sd(population$trait[population$group=='Domesticated Population'])
-    domesticated_lower_bound <- mean(population$trait[population$group=='Domesticated Population']) - sd(population$trait[population$group=='Domesticated Population'])
-    
+    # wild_upper_bound <- mean(population$trait[population$group=='Wild Population']) + sd(population$trait[population$group=='Wild Population'])
+    # wild_lower_bound <- mean(population$trait[population$group=='Wild Population']) - sd(population$trait[population$group=='Wild Population'])
+    # domesticated_upper_bound <- mean(population$trait[population$group=='Domesticated Population']) + sd(population$trait[population$group=='Domesticated Population'])
+    # domesticated_lower_bound <- mean(population$trait[population$group=='Domesticated Population']) - sd(population$trait[population$group=='Domesticated Population'])
+    # 
     
     
     # Append results to the tracking data.table
@@ -495,29 +520,29 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
     # ))
     
     # Append results to the tracking data.table
-    results <- rbindlist(list(
-      results,
-      data.table(
-        year = year,
-        plot = plot,
-        group = "Wild Population",
-        yield = wild_plot_yield,
-        avg_trait = mean(population$trait[population$group == 'Wild Population']),
-        trait_variance = sd(population$trait[population$group == 'Wild Population']),
-        upper_bound = wild_upper_bound,
-        lower_bound = wild_lower_bound
-      ),
-      data.table(
-        year = year,
-        plot = plot,
-        group = "Domesticated Population",
-        yield = dom_plot_yield,
-        avg_trait = mean(population$trait[population$group == 'Domesticated Population']),
-        trait_variance = sd(population$trait[population$group == 'Domesticated Population']),
-        upper_bound = domesticated_upper_bound,
-        lower_bound = domesticated_lower_bound
-      )
-    ), fill = TRUE)
+    # results <- rbindlist(list(
+    #   results,
+    #   data.table(
+    #     year = year,
+    #     plot = plot,
+    #     group = "Wild Population",
+    #     yield = wild_plot_yield,
+    #     avg_trait = mean(population$trait[population$group == 'Wild Population']),
+    #     trait_variance = sd(population$trait[population$group == 'Wild Population']),
+    #     upper_bound = wild_upper_bound,
+    #     lower_bound = wild_lower_bound
+    #   ),
+    #   data.table(
+    #     year = year,
+    #     plot = plot,
+    #     group = "Domesticated Population",
+    #     yield = dom_plot_yield,
+    #     avg_trait = mean(population$trait[population$group == 'Domesticated Population']),
+    #     trait_variance = sd(population$trait[population$group == 'Domesticated Population']),
+    #     upper_bound = domesticated_upper_bound,
+    #     lower_bound = domesticated_lower_bound
+    #   )
+    # ), fill = TRUE)
     
     # new_wild_population_size <- plants_per_acre - wild_survived
     
@@ -546,46 +571,46 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
   
   
   
-  # Select top plots based on yield value
-  wild_selected_plots_trait <- sort(wild_plot_yield, decreasing = TRUE)[1:n_selected]
-  domesticated_new_population <- sort(dom_plot_yield, decreasing = TRUE)[1:n_selected]
-  
-  # new plots inherit average of selected plots trait + some random variation
-  wild_new_population <- rnorm(wild_n_individuals, 
-                               mean = mean(wild_selected_plots_trait), 
-                               sd = sd(wild_selected_plots_trait) * 0.1)
-  wild_new_population <- pmax(0, pmin(1, wild_new_population)) # Ensure values within [0, 1]
-  domesticated_new_population <- rnorm(domesticated_n_individuals, 
-                                       mean = mean(domesticated_selected_plots_trait), 
-                                       sd = sd(domesticated_selected_plots_trait) * 0.1)
-  domesticated_new_population <- pmax(0, pmin(1, domesticated_new_population)) # Ensure values within [0, 1]
-  
-  
-  # Plot results
-  ggplot(results, aes(x = time)) +
-    geom_line(aes(y = count, color = group), linewidth = 1) +
-    geom_line(aes(y = avg_trait * max(results$count) / max(results$avg_trait), color = group, linetype = group)) +
-    geom_ribbon(aes(ymin = lower_bound * max(results$count) / max(results$avg_trait), 
-                    ymax = upper_bound * max(results$count) / max(results$avg_trait), 
-                    fill = group), alpha = 0.1) +
-    scale_y_continuous(
-      name = "Yield Per Acre",
-      sec.axis = sec_axis(~ . * max(results$avg_trait) / max(results$count), 
-                          name = "Secondary Metabolite Expression [0-1]")
-    ) +
-    scale_color_manual(values = c("Wild Population" = "#27582b", "Domesticated Population" = "#59466a")) +
-    scale_fill_manual(values = c("Wild Population" = "#27582b", "Domesticated Population" = "#59466a")) +
-    labs(
-      title = sprintf("Years: %d, Pest Pressure: %.2f", year, pest_pressure),
-      x = "Years",
-      color = "Group",
-      fill = "Group"
-    ) +
-    theme_minimal()
-  
-  wild_trait_expression_year <-  TODO # Reset trait expression values for each plot
-  domesticated_trait_expression_year <- TODO # Reset trait expression values for each plot
-  
+  # # Select top plots based on yield value
+  # wild_selected_plots_trait <- sort(wild_plot_yield, decreasing = TRUE)[1:n_selected]
+  # domesticated_new_population <- sort(dom_plot_yield, decreasing = TRUE)[1:n_selected]
+  # 
+  # # new plots inherit average of selected plots trait + some random variation
+  # wild_new_population <- rnorm(wild_n_individuals, 
+  #                              mean = mean(wild_selected_plots_trait), 
+  #                              sd = sd(wild_selected_plots_trait) * 0.1)
+  # wild_new_population <- pmax(0, pmin(1, wild_new_population)) # Ensure values within [0, 1]
+  # domesticated_new_population <- rnorm(domesticated_n_individuals, 
+  #                                      mean = mean(domesticated_selected_plots_trait), 
+  #                                      sd = sd(domesticated_selected_plots_trait) * 0.1)
+  # domesticated_new_population <- pmax(0, pmin(1, domesticated_new_population)) # Ensure values within [0, 1]
+  # 
+  # 
+  # # Plot results
+  # ggplot(results, aes(x = time)) +
+  #   geom_line(aes(y = count, color = group), linewidth = 1) +
+  #   geom_line(aes(y = avg_trait * max(results$count) / max(results$avg_trait), color = group, linetype = group)) +
+  #   geom_ribbon(aes(ymin = lower_bound * max(results$count) / max(results$avg_trait), 
+  #                   ymax = upper_bound * max(results$count) / max(results$avg_trait), 
+  #                   fill = group), alpha = 0.1) +
+  #   scale_y_continuous(
+  #     name = "Yield Per Acre",
+  #     sec.axis = sec_axis(~ . * max(results$avg_trait) / max(results$count), 
+  #                         name = "Secondary Metabolite Expression [0-1]")
+  #   ) +
+  #   scale_color_manual(values = c("Wild Population" = "#27582b", "Domesticated Population" = "#59466a")) +
+  #   scale_fill_manual(values = c("Wild Population" = "#27582b", "Domesticated Population" = "#59466a")) +
+  #   labs(
+  #     title = sprintf("Years: %d, Pest Pressure: %.2f", year, pest_pressure),
+  #     x = "Years",
+  #     color = "Group",
+  #     fill = "Group"
+  #   ) +
+  #   theme_minimal()
+  # 
+  # wild_trait_expression_year <-  TODO # Reset trait expression values for each plot
+  # domesticated_trait_expression_year <- TODO # Reset trait expression values for each plot
+  # 
   
   
 }
