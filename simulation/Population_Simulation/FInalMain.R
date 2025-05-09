@@ -92,6 +92,13 @@ n_selected <- ceiling(plots * selection_proportion)
 
 
 
+# Graphs ----------------------------------------------------------------------
+color_options <- c('#F4E9CB',"#F1DBA9","#F4E9CB","#F2D590",
+                   "#000000","#FEFEFE","#F1A692",
+                   "#814627","#834C28","#663333",
+                   '#DA9D20',"#EEB612","#DA9D20",
+                   "#AB5300","#AE5524","#AF5726",
+                   "#AB7836","#63601C","#818511",)
 
 
 
@@ -258,16 +265,84 @@ wild_mortality <- c()
 # Main simulation loop --------------------------------------------------------
 
 # set location
-location <- "Georgia" # "Minnesota" # change location
+location <- "Minnesota" # "Minnesota" "Georgia"# change location
 
 # Loop through each year
 for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each year in climate data
   # Filter climate data for the current year
   
   climate_data_year <- climate_data %>%
-    filter(Year == climate_data$Year[year], Location == location)
+    filter(Year == unique(climate_data$Year)[year], Location == location)
+  # plot(climate_data_year$PRCP, 
+  #      type= "l",
+  #      pch = 20,
+  #      col = '#5B9DD9',
+  #      # ylab = expression("Grain Yield" ~ (q.ha^-1)),
+  #      ylab = expression("Daily Precipitation (mm)"),
+  #      # ylab = expression("Grain Yield (quintals per hectare)"),
+  #      xlab = 'Day of Growing Season', 
+  #      main = sprintf('Climate for year: %d',
+  #                     unique(climate_data$Year)[year])
+  # ) +
+  #   lines(climate_data_year$Temp_mean,
+  #         col='#C84B1B')
+  
+  
+  # Set up the plotting area
+  par(mar = c(5, 4, 4, 4) + 0.1)  # Adjust margins to make space for the right y-axis
+  
+  # # Plot precipitation (PRCP) on the left y-axis
+  # plot(climate_data_year$PRCP, 
+  #      type = "l",
+  #      col = '#5B9DD9',
+  #      ylab = "Daily Precipitation (mm)",  # Left y-axis label
+  #      xlab = "Day of Growing Season", 
+  #      ylim = c(0,900),
+  #      main = sprintf("Climate for year: %d", unique(climate_data$Year)[year]))
+  # 
+  # Plot precipitation (PRCP) on the left y-axis
+  plot(climate_data_year$PRCP, 
+       type = "l",
+       col = '#5B9DD9',  # Line color for precipitation
+       ylim = c(0,900),  # Set y-axis limits for the left axis
+       ylab = "",  # Suppress default y-axis label
+       xlab = "Day of Growing Season", 
+       main = sprintf("Climate for year: %d", unique(climate_data$Year)[year]))
+  
+  # Add custom y-axis label and color for the left axis
+  mtext("Daily Precipitation (mm)", side = 2, line = 3, col = '#5B9DD9')  # Left y-axis label
+  axis(side = 2, col.axis = '#5B9DD9')  # Left y-axis numbers in blue
+  
+  
+  # Add temperature (Temp_mean) on the right y-axis
+  par(new = TRUE)  # Overlay a new plot on the same graph
+  plot(climate_data_year$Temp_mean, 
+       type = "l",
+       col = '#C84B1B',
+       axes = FALSE,  # Suppress axes for this plot
+       xlab = "",  # Suppress x-axis label
+       ylab = "",  # Suppress y-axis label
+      ylim = c(-5,max(climate_data_year$Temp_mean))
+  )
+  
+  # Add the right y-axis
+  axis(side = 4, col.axis = '#C84B1B',)  # Add the right y-axis
+  mtext("Temperature (°C)", side = 4, line = 3, col = '#C84B1B')  # Label for the right y-axis
+  
+  
   # pest pressure
   pest_pressure <- aphid_pest_pressure(climate_data_year$Temp_mean)
+  plot(pest_pressure, 
+       pch = 20,
+       col = '#EEB612',
+       # ylab = expression("Grain Yield" ~ (q.ha^-1)),
+       ylab = expression("Pest Pressure [0,1]"),
+       # ylab = expression("Grain Yield (quintals per hectare)"),
+       xlab = 'Day of Growing Season', 
+       main = sprintf('Pest Pressure for Year: %d',
+                      unique(climate_data$Year)[year])
+  ) 
+  
   
   # # store pest pressure
   # pest_pressure_data <- rbind(pest_pressure_data, 
@@ -298,8 +373,21 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
     # sunflo
     wild_sunflo <- run_sunflo(climate_data_year,
                               wild_trait_mean_expression, # wild_trait_expression or domesticated_trait_expression
-                              '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode')
-
+                              '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode')%>%
+      mutate(GrowingSeasonDay = row_number())
+    plot(wild_sunflo$GrowingSeasonDay, wild_sunflo$CropYield, 
+         pch = 20,
+         col = '#DA9D20',
+         # ylab = expression("Grain Yield" ~ (q.ha^-1)),
+         ylab = expression("Grain Yield (q/ha)"),
+         # ylab = expression("Grain Yield (quintals per hectare)"),
+         xlab = 'Day of Growing Season', 
+         main = sprintf('Wild Grain Yield: %g Year: %d, Plot: %d, Trait: %g', 
+                        round(max(wild_sunflo$CropYield), digits = 2),
+                        unique(climate_data$Year)[year], 
+                        plot, 
+                        round(wild_trait_mean_expression, digits = 3))
+        ) 
     #       # Fit a linear model
     #       wild_lm_model <- lm(CropBiomass ~ DayNumber, data = sunflo)
     # 
@@ -313,8 +401,20 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
     
     domesticated_sunflo <- run_sunflo(climate_data_year,
                                       domesticated_trait_mean_expression, # wild_trait_expression or domesticated_trait_expression
-                                      '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode')
-    
+                                      '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode') %>%
+      mutate(GrowingSeasonDay = row_number())
+    plot(domesticated_sunflo$GrowingSeasonDay, domesticated_sunflo$CropYield,
+         pch = 20,
+         col = "#814627",
+         # ylab = expression("Grain Yield" ~ (q.ha^-1)),
+         ylab = expression("Grain Yield (q/ha)"),
+         # ylab = expression("Grain Yield (quintals per hectare)"),
+         xlab = 'Day of Growing Season', 
+         main = sprintf('Domesticated Yield:%g, Year: %d, Plot: %d, Trait: %g', 
+                        round(max(domesticated_sunflo$CropYield), digits = 2),
+                        unique(climate_data$Year)[year], 
+                        plot, 
+                        round(domesticated_trait_mean_expression, digits = 3))) 
 
     # # Fit a linear model
     # domesticated_lm_model <- lm(CropBiomass ~ DayNumber, data = sunflo)
@@ -331,33 +431,26 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
     
     for (day in 1:nrow(climate_data_year)) { # for each day in growing season
 
-      # death related to intrinisic propbability of death
-      # population <- mortality_function(climate_data_year$TMAX[day], climate_data_year$PRCP[day], pest_pressure, )
-
-      wild_mortality[day] <- mortality_function(climate_data_year$TMAX[day], climate_data_year$PRCP[day], pest_pressure, wild_trait_mean_expression )
-      plot(mortality_function(climate_data_year$TMAX[day], 
-                              climate_data_year$PRCP[day], 
-                              pest_pressure, 
-                              wild_trait_mean_expression),
+      # death related to intrinsic probability of death
+      wild_mortality <- mortality_function(climate_data_year$TMAX[day], climate_data_year$PRCP[day], pest_pressure, wild_trait_mean_expression )
+      plot(wild_mortality,
+           pch = 20,
+           col = '#DA9D20',
            ylim = c(0,1.4), 
            ylab = 'mortality',
            xlab = 'growing season days',
            main = 'mortality across growing season for wild population'
       )  
       
-      domesticated_mortality[day] <-  mortality_function(climate_data_year$TMAX[day], climate_data_year$PRCP[day], pest_pressure, domesticated_trait_mean_expression, TRUE )
-      plot(mortality_function(climate_data_year$TMAX[day], 
-                              climate_data_year$PRCP[day], 
-                              pest_pressure, 
-                              domesticated_trait_mean_expression, 
-                              TRUE),
+      domesticated_mortality <-  mortality_function(climate_data_year$TMAX[day], climate_data_year$PRCP[day], pest_pressure, domesticated_trait_mean_expression, TRUE )
+      plot(domesticated_mortality,
+           pch = 20,
+           col = "#814627",
            ylim = c(0,1.4), 
            ylab = 'mortality',
            xlab = 'growing season days',
            main = 'mortality across growing season for domesticated population'
       )
-
-      
     }
     
     
@@ -369,7 +462,8 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
     #   mutate(DayNumber = row_number())     # add day by row number
     # wild_plot_yield[plot] <- max(wild_sunflo$CropYield) * max(wild_mortality)
     
-    # TODO what are sunflo yeild units
+    # TODO sunflo yeild units
+    # 1 q.ha⁻¹ = 100 kg/ha
     
     wild_upper_bound <- mean(population$trait[population$group=='Wild Population']) + sd(population$trait[population$group=='Wild Population'])
     wild_lower_bound <- mean(population$trait[population$group=='Wild Population']) - sd(population$trait[population$group=='Wild Population'])
@@ -467,7 +561,6 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
   domesticated_new_population <- pmax(0, pmin(1, domesticated_new_population)) # Ensure values within [0, 1]
   
   
-  
   # Plot results
   ggplot(results, aes(x = time)) +
     geom_line(aes(y = count, color = group), linewidth = 1) +
@@ -476,15 +569,15 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
                     ymax = upper_bound * max(results$count) / max(results$avg_trait), 
                     fill = group), alpha = 0.1) +
     scale_y_continuous(
-      name = "Population Size",
+      name = "Yield Per Acre",
       sec.axis = sec_axis(~ . * max(results$avg_trait) / max(results$count), 
-                          name = "Secondary Metabolite Expression (0-1)")
+                          name = "Secondary Metabolite Expression [0-1]")
     ) +
     scale_color_manual(values = c("Wild Population" = "#27582b", "Domesticated Population" = "#59466a")) +
     scale_fill_manual(values = c("Wild Population" = "#27582b", "Domesticated Population" = "#59466a")) +
     labs(
-      title = sprintf("Time Steps: %d, Pest Pressure: %.2f", year, pest_pressure),
-      x = "Time Steps",
+      title = sprintf("Years: %d, Pest Pressure: %.2f", year, pest_pressure),
+      x = "Years",
       color = "Group",
       fill = "Group"
     ) +

@@ -31,15 +31,15 @@ minnesota_climate <- rbind(minnesota_climate_p1, minnesota_climate_p2) %>%
 # Combine climate data
 climate_data <- rbind(georgia_climate,minnesota_climate) %>%
   mutate(Year = ifelse(Year < 50, Year + 2000, Year + 1900))  %>%
-  mutate(Date = as.Date(paste(Year, Month, Day, sep = "-"), format = "%Y-%m-%d"))%>%
+  mutate(Date = as.Date(paste(Year, Month, Day, sep = "-"), format = "%Y-%m-%d")) %>%
   mutate(ID = paste(Location, StudyPeriod, Date, sep = "_"))  %>%
   mutate(TMAX = TMAX/10) %>%
   mutate(TMIN = TMIN/10) %>%
   mutate(Temp_mean = (TMAX + TMIN)/2)  %>% 
   filter(Month %in% 04:08)  %>% # Filter for growing season (April to October)
-  group_by(Year) %>%  # Group by Year
+  group_by(Year,Location) %>%  # Group by Year
   mutate(GrowingSeasonDay = row_number()) %>%  # Assign sequential numbers within each year
-  ungroup()  %>% # Remove grouping
+  ungroup() %>% # Remove grouping
   # filter GrowingSeasonDay > 150
   filter(GrowingSeasonDay <= 150) # Filter for first 150 days of growing season
 
