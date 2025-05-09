@@ -197,7 +197,12 @@ relative_water_content <- function(theta, theta_wp, theta_fc) {
 # Leaching is the product of drained water (Drainage) and the nitrogen concentration from the soil layer concerned.
 # SoilNitrogenContentt = Fertilizationt + Mineralizationt − Leachingt − Denitrificationt − NitrogenUptaket
 soil_nitrogen_content <- function(prev_SoilNitrogenContent, Fertilization, Mineralization,Leaching, Denitrification, NitrogenUptake) {
-  return (prev_SoilNitrogenContent + Fertilization + Mineralization - Leaching - Denitrification - NitrogenUptake)
+  cur_content <- (prev_SoilNitrogenContent + Fertilization + Mineralization - Leaching - Denitrification - NitrogenUptake)
+  if (cur_content < 0) {
+    return (0)
+  } else {
+    return (cur_content)
+  }
 } 
 
 # Nitrogen mineralization takes place in surface layer and is impacted by relative 
@@ -267,7 +272,7 @@ nitrogen_nutrition_index <- function(NitrogenSupply_all, NitrogenDemand) {
 
 I_nitrogen_nutrition_index <- function(NitrogenSupply, NitrogenDemand) {
   if (NitrogenDemand == 0) {
-    return (1)
+    return (0)
   }
   return (NitrogenSupply/NitrogenDemand)
 }
@@ -442,7 +447,7 @@ terp_expression_stress_rue <- function(Tm, pest_resistance_genetic) {
   T_b = 30 # in this case, "base" temp is 30 C
   constant = 0.02 #Based on calculations from https://pmc.ncbi.nlm.nih.gov/articles/PMC10445015 and 
   # https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/epdf/10.1002/bit.20237?saml_referrer
-  max_terpene_expression <- 1
+  base_terpene_expression <- 0.05
   
   # based on expriments from https://www.sciencedirect.com/science/article/pii/S0168192323000928
   terpene_expr_increase_per_C <- (0.22/(43-30)) 
@@ -451,13 +456,15 @@ terp_expression_stress_rue <- function(Tm, pest_resistance_genetic) {
   } else {
     terpene_expression  <- pest_resistance_genetic
   }
-  norm_terpene_expression <- terpene_expression / max_terpene_expression # normalize terpenoid expression
+  norm_terpene_expression <- terpene_expression / base_terpene_expression # normalize terpenoid expression
   TerpeneStressRUE <- 1 - (constant * norm_terpene_expression)
   
   # TODO: should this have a lower limit of 1? Lower expression should not result
   # in a faster growth rate... 
   if (TerpeneStressRUE > 1) {
     return (1)
+  } else if (TerpeneStressRUE < 0) {
+    return (0)
   } else {
     return (TerpeneStressRUE)
   }

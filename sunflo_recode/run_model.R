@@ -21,8 +21,10 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
 
   # Environment variables which are predefined or passed in :
   
-  Rainfall <- climate_data$Pluie #from the climate data file
-  T_m <- (climate_data$Tmax + climate_data$Tmin)/2 #from climate file
+  # Rainfall <- climate_data$Pluie #from the climate data file
+  Rainfall <- climate_data$PRCP #from the climate data file
+  # T_m <- (climate_data$Tmax + climate_data$Tmin)/2 #from climate file
+  T_m <- (climate_data$TMAX + climate_data$TMIN)/2 #from climate file
   
   # Read in evapotranspiration and radiation from climate file
   constant_climate_data <- readRDS(file.path(working_directory,"radiation_data_AUZ_2008.RDS"))
@@ -214,7 +216,7 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
     SoilNitrogenConcentration[t] <- soil_nitrogen_concentration(SoilNitrogenContent[t], WaterAvailable[t])
     # SoilNitrogenConcentration[t] <- soil_nitrogen_concentration(SoilNitrogenContent[t-1],RootDepth[t],
     #                                                             WaterContentTheta[t], SoilDensity) # NDY , see jenna_notes
-    
+    print(SoilNitrogenConcentration[t])
     NitrogenSupplyRate[t] <- nitrogen_uptake_rate(Transpiration[t], SoilNitrogenConcentration[t]) #NDY , same thing as nitrogen update rate
    
     # Same as NitrogenUptake, no functions for this in the documentation
@@ -295,6 +297,7 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
     
     # Final output, crop yield for entire harvest
     CropBiomass[t] <- crop_biomass(PAR[t], RIE[t],RUE[t], CropBiomass[t-1])
+    
   }
   CropBiomass <- CropBiomass*(10 ** 6/ 10 ** 4) # Covert from t/ha to g/m^2
   HarvestIndex <- cultivar_parameters$PotentialHarvestIndex
@@ -308,8 +311,8 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
   
   # Save into output dataframe
   output <- data.frame(
-    TemperatureAirMin = climate_data$Tmin,
-    TemperatureAirMax = climate_data$Tmax,
+    TemperatureAirMin = climate_data$TMIN,
+    TemperatureAirMax = climate_data$TMAX,
     TemperatureAirMean = T_m,
     Radiation = Radiation,
     PET = PET,
@@ -331,7 +334,7 @@ run_sunflo <- function(climate_data, pest_resistance_genetic, working_directory)
     CropYield = CropYield,
     TerpeneStressRUE = TerpeneStressRUE,
     pest_resistance_genetic = pest_resistance_genetic,
-    WaterAvailable = WaterAvailable
+    WaterAvailable = WaterAvailable[t]
     # a_water_stress = a_water_stress
     #OilContent = OilContent
   )
