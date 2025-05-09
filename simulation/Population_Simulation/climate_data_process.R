@@ -26,6 +26,8 @@ get_year_climate_data <- function(climate_data_df, year) {
   end_index <- start_index + 149
   result <- climate_data_year[start_index:end_index, ]
   
+  return (result)
+  
 }
 
 processed <- get_year_climate_data(climate_data_df, 14)
