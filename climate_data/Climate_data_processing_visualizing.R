@@ -13,6 +13,18 @@ georgia_climate_p1 <- read.csv("climate_data/Georgia_clean_90_00.csv")%>%
 georgia_climate_p2 <- read.csv("climate_data/Georgia_clean_14_24.csv")%>%
   mutate(StudyPeriod = 2)
 
+which(is.na(georgia_climate_p2$TMAX))
+
+# impute missing TMAX values
+# 109 32.76667
+# 110 32.23334
+# 113 32.5
+georgia_climate_p2$TMAX[3121] <- round(32.76667 *10, 0)
+georgia_climate_p2$TMAX[3122] <- round(32.23334 * 10, 1)
+georgia_climate_p2$TMAX[3125] <- 32.5 *10
+
+
+
 
 minnesota_climate_p1 <- read.csv("climate_data/Minnesota_clean_90_00.csv")%>%
   mutate(StudyPeriod = 1)

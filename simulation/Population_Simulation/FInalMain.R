@@ -18,6 +18,8 @@ source("sunflo_recode/run_model.R") # Load sunflower model
 # climate data
 climate_data <- read.csv("climate_data/Climate_data.csv")
 
+# which(is.na(climate_data$TMAX))
+
 # trait values
 source("simulation/Population_Simulation/Population_Gentic_Traits.R")
 
