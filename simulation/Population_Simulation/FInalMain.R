@@ -26,7 +26,7 @@ set.seed(123)
 
 # Define parameters -----------------------------------------------------------
 # years <- 2 # Number of years to simulate
-years <- length(unique(climate_data$Year))
+years <- length(unique(climate_data$Year[climate_data$StudyPeriod==2]))
 
 # number of plots of populations
 plots <- 4
@@ -185,14 +185,17 @@ hist(domesticated_trait_expression_year, main = 'Bounded [0,1] Domesticated Trai
 # Main simulation loop --------------------------------------------------------
 
 # set location
-location <- "Minnesota" # "Minnesota" "Georgia"# change location
+location <- "Georgia" # "Minnesota" "Georgia"# change location
+study_period <- 2 # 1, 2
 
 # Loop through each year
 for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each year in climate data
   # Filter climate data for the current year
   
   climate_data_year <- climate_data %>%
-    filter(Year == unique(climate_data$Year)[year], Location == location)
+    filter(Year == unique(climate_data$Year[climate_data$StudyPeriod==study_period])[year], 
+           Location == location, 
+           StudyPeriod == study_period)
   
   # pest pressure
   pest_pressure <- aphid_pest_pressure(climate_data_year$Temp_mean)
@@ -204,7 +207,8 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
        # ylab = expression("Grain Yield (quintals per hectare)"),
        xlab = 'Day of Growing Season', 
        main = sprintf('Pest Pressure for Year: %d',
-                      unique(climate_data$Year)[year])
+                      unique(climate_data$Year[climate_data$StudyPeriod==study_period])[year])
+       
   ) 
   
   
@@ -271,30 +275,30 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
     # TODO sunflo yeild units
     # 1 q.ha⁻¹ = 100 kg/ha
     
-    tiff(sprintf("simulation/results/Yield_%s_Wild_%d_plot%d.png",
-                 location,
-                 unique(climate_data$Year)[year], 
-                 plot), 
-         width = 1000,  # Increase width
-         height = 800,  
-         res = 400, 
-         bg = "transparent",
-         pointsize = 5,
-         compression = 'none')
-    plot(wild_sunflo$GrowingSeasonDay, wild_sunflo$CropYield, 
-         pch = 20,
-         col = '#DA9D20',
-         # ylab = expression("Grain Yield" ~ (q.ha^-1)),
-         ylab = expression("Grain Yield (q/ha)"),
-         # ylab = expression("Grain Yield (quintals per hectare)"),
-         xlab = 'Day of Growing Season', 
-         main = sprintf('Wild Grain Yield: %g Year: %d, Plot: %d, Trait: %g', 
-                        round(max(wild_sunflo$CropYield), digits = 2),
-                        unique(climate_data$Year)[year], 
-                        plot, 
-                        round(wild_trait_mean_expression, digits = 3))
-        ) 
-    dev.off() 
+    # tiff(sprintf("simulation/results/Yield_%s_Wild_%d_plot%d.png",
+    #              location,
+    #              unique(climate_data$Year)[year], 
+    #              plot), 
+    #      width = 1000,  # Increase width
+    #      height = 800,  
+    #      res = 400, 
+    #      bg = "transparent",
+    #      pointsize = 5,
+    #      compression = 'none')
+    # plot(wild_sunflo$GrowingSeasonDay, wild_sunflo$CropYield, 
+    #      pch = 20,
+    #      col = '#DA9D20',
+    #      # ylab = expression("Grain Yield" ~ (q.ha^-1)),
+    #      ylab = expression("Grain Yield (q/ha)"),
+    #      # ylab = expression("Grain Yield (quintals per hectare)"),
+    #      xlab = 'Day of Growing Season', 
+    #      main = sprintf('Wild Grain Yield: %g Year: %d, Plot: %d, Trait: %g', 
+    #                     round(max(wild_sunflo$CropYield), digits = 2),
+    #                     unique(climate_data$Year)[year], 
+    #                     plot, 
+    #                     round(wild_trait_mean_expression, digits = 3))
+    #     ) 
+    # dev.off() 
     
     
     domesticated_sunflo <- run_sunflo(climate_data_year,
@@ -312,32 +316,33 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
     #     width = 700, 
     #     height = 500,
     #     bg = "transparent")  
-    tiff(sprintf("simulation/results/Yield_%s_Domesticated_%d_plot%d.png",
-             location,
-             unique(climate_data$Year)[year], 
-             plot), 
-     width = 1000,  # Increase width
-     height = 800,  
-     res = 400, 
-     bg = "transparent",
-     pointsize = 5,
-     compression = 'none')
     
-    plot(domesticated_sunflo$GrowingSeasonDay, domesticated_sunflo$CropYield,
-         pch = 20,
-         size = .5,
-        
-         col = "#814627",
-         # ylab = expression("Grain Yield" ~ (q.ha^-1)),
-         ylab = expression("Grain Yield (q/ha)"),
-         # ylab = expression("Grain Yield (quintals per hectare)"),
-         xlab = 'Day of Growing Season', 
-         main = sprintf('Domesticated Yield:%g, Year: %d, Plot: %d, Trait: %g', 
-                        round(max(domesticated_sunflo$CropYield), digits = 2),
-                        unique(climate_data$Year)[year], 
-                        plot, 
-                        round(domesticated_trait_mean_expression, digits = 3))) 
-    dev.off() 
+    # tiff(sprintf("simulation/results/Yield_%s_Domesticated_%d_plot%d.png",
+    #          location,
+    #          unique(climate_data$Year)[year], 
+    #          plot), 
+    #  width = 1000,  # Increase width
+    #  height = 800,  
+    #  res = 400, 
+    #  bg = "transparent",
+    #  pointsize = 5,
+    #  compression = 'none')
+    # 
+    # plot(domesticated_sunflo$GrowingSeasonDay, domesticated_sunflo$CropYield,
+    #      pch = 20,
+    #      size = .5,
+    #     
+    #      col = "#814627",
+    #      # ylab = expression("Grain Yield" ~ (q.ha^-1)),
+    #      ylab = expression("Grain Yield (q/ha)"),
+    #      # ylab = expression("Grain Yield (quintals per hectare)"),
+    #      xlab = 'Day of Growing Season', 
+    #      main = sprintf('Domesticated Yield:%g, Year: %d, Plot: %d, Trait: %g', 
+    #                     round(max(domesticated_sunflo$CropYield), digits = 2),
+    #                     unique(climate_data$Year)[year], 
+    #                     plot, 
+    #                     round(domesticated_trait_mean_expression, digits = 3))) 
+    # dev.off() 
     
     
     # TODO herbivory
@@ -377,7 +382,7 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
       results,
       data.table(
         location = location,
-        year = unique(climate_data$Year)[year],
+        year = unique(climate_data$Year[climate_data$StudyPeriod==study_period])[year],
         plot = plot,
         group = "Wild Population",
         yield = wild_plot_yield,
@@ -388,7 +393,7 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
       ),
       data.table(
         location = location,
-        year = unique(climate_data$Year)[year],
+        year = unique(climate_data$Year[climate_data$StudyPeriod==study_period])[year],
         plot = plot,
         group = "Domesticated Population",
         yield = domesticated_plot_yield,
@@ -460,23 +465,35 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
 }
 
 # Plot results
-ggplot(results, aes(x = year)) +
-  geom_line(aes(y = yield, color = group), linewidth = 1) +
+results_graph <- ggplot(results, aes(x = year)) +
+  geom_line(aes(y = yield, color = group), linewidth = .5, alpha = .8) +
   geom_line(aes(y = trait_mean * max(results$yield) / max(results$trait_mean), color = group, linetype = group)) +
   geom_ribbon(aes(ymin = lower_bound * max(results$yield) / max(results$trait_mean),
                   ymax = upper_bound * max(results$yield) / max(results$trait_mean),
                   fill = group), alpha = 0.1) +
   scale_y_continuous(
     name = "Yield Per Acre",
-    sec.axis = sec_axis(~ . * max(results$trait_mean) / max(results$trait_mean),
+    sec.axis = sec_axis(~ . * max(results$trait_mean) / max(results$yield),
                         name = "Secondary Metabolite Expression [0-1]")
   ) +
   scale_color_manual(values = c("Wild Population" = "#27582b", "Domesticated Population" = "#59466a")) +
   scale_fill_manual(values = c("Wild Population" = "#27582b", "Domesticated Population" = "#59466a")) +
-  labs(
-    title = sprintf("Years: %d, Pest Pressure: %.2f", year, pest_pressure),
-    x = "Years",
-    color = "Group",
-    fill = "Group"
-  ) +
-  theme_minimal()
+labs(
+  title = sprintf("%s Yield for Years %d-%d", 
+                  location,
+                  min(results$year),
+                  max(results$year)),
+  x = "Years",
+  color = "Group",
+  fill = "Group"
+) +
+theme_minimal()
+
+results_graph
+  
+# Save the plot as a PNG file
+ggsave(sprintf("Yield_Trait_%s_StudyPeriod%d.png",
+               location,
+               study_period),
+       plot = results_graph, path = 'simulation/results',
+       width = 6, height = 6, dpi = 300)
