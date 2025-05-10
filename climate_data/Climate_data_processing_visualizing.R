@@ -54,6 +54,81 @@ write.csv(climate_data, "climate_data/Climate_data.csv")
 
 
 
+# plot(climate_data_year$PRCP, 
+#      type= "l",
+#      pch = 20,
+#      col = '#5B9DD9',
+#      # ylab = expression("Grain Yield" ~ (q.ha^-1)),
+#      ylab = expression("Daily Precipitation (mm)"),
+#      # ylab = expression("Grain Yield (quintals per hectare)"),
+#      xlab = 'Day of Growing Season', 
+#      main = sprintf('Climate for year: %d',
+#                     unique(climate_data$Year)[year])
+# ) +
+#   lines(climate_data_year$Temp_mean,
+#         col='#C84B1B')
+
+
+# Set up the plotting area
+par(mar = c(5, 4, 4, 4) + 0.1)  # Adjust margins to make space for the right y-axis
+
+# # Plot precipitation (PRCP) on the left y-axis
+# plot(climate_data_year$PRCP, 
+#      type = "l",
+#      col = '#5B9DD9',
+#      ylab = "Daily Precipitation (mm)",  # Left y-axis label
+#      xlab = "Day of Growing Season", 
+#      ylim = c(0,900),
+#      main = sprintf("Climate for year: %d", unique(climate_data$Year)[year]))
+# 
+# Plot precipitation (PRCP) on the left y-axis
+plot(climate_data_year$PRCP, 
+     type = "l",
+     col = '#5B9DD9',  # Line color for precipitation
+     ylim = c(0,900),  # Set y-axis limits for the left axis
+     ylab = "",  # Suppress default y-axis label
+     xlab = "Day of Growing Season", 
+     main = sprintf("Climate for year: %d", unique(climate_data$Year)[year]))
+
+# Add custom y-axis label and color for the left axis
+mtext("Daily Precipitation (mm)", side = 2, line = 3, col = '#5B9DD9')  # Left y-axis label
+axis(side = 2, col.axis = '#5B9DD9')  # Left y-axis numbers in blue
+
+
+# Add temperature (Temp_mean) on the right y-axis
+par(new = TRUE)  # Overlay a new plot on the same graph
+plot(climate_data_year$Temp_mean, 
+     type = "l",
+     col = '#C84B1B',
+     axes = FALSE,  # Suppress axes for this plot
+     xlab = "",  # Suppress x-axis label
+     ylab = "",  # Suppress y-axis label
+     ylim = c(-5,max(climate_data_year$Temp_mean))
+)
+
+# Add the right y-axis
+axis(side = 4, col.axis = '#C84B1B',)  # Add the right y-axis
+mtext("Temperature (°C)", side = 4, line = 3, col = '#C84B1B')  # Label for the right y-axis
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

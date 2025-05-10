@@ -48,6 +48,45 @@ source("sunflo_recode/run_model.R") # Load sunflower model
 # }
 
 
+# find all files in sunflo_recode directory sunflo_recode/examples_for_presentation that start with "terp_stress_" .csv
+# Define the directory path
+# sunflo_output_directory_path <- "sunflo_recode/examples_for_presentation"
+# 
+# # Find all files that match the pattern
+# files <- list.files(path = sunflo_output_directory_path, pattern = "^terp_stress_.*\\.csv$", full.names = TRUE)
+# 
+# sunflo <- read_csv(files[1])
+# 
+# # terpinoid numbers
+# # [1] "0 0"
+# # [1] "0.5 0.166666666666667"
+# # [1] "1 0.333333333333333"
+# # [1] "1.5 0.5"
+# # [1] "2 0.666666666666667"
+# # [1] "2.5 0.833333333333333"
+# # [1] "3 1"
+# 
+# # Define the terpinoid values
+# terpinoid_values <- c(0, 0.16667, 0.33333, 0.5, 0.66667, 0.83333, 1)
+# 
+# # Function to find the closest index
+# get_closest_index <- function(mean_trait_value) {
+#   # Calculate the absolute difference between mean_trait_value and each terpinoid value
+#   differences <- abs(terpinoid_values - mean_trait_value)
+#   
+#   # Find the index of the smallest difference
+#   closest_index <- which.min(differences)
+#   
+#   return(closest_index)
+# }
+
+
+# sunflo <- read_csv(files[1]) %>%
+#   mutate(DayNumber = row_number())     # add day by row number
+# plot_yield[plot] <- max(sunflo$CropYield)
+
+
+
 # sunflo <- read_csv(files[1]) %>%
 #   mutate(DayNumber = row_number())     # add day by row number
 # plot_yield[plot] <- max(sunflo$CropYield)
@@ -159,6 +198,70 @@ initialize_population <- function() {
   return(population)
 }
 
+# initialize_population <- function() {
+#   wild_population <- data.table(
+#     trait = numeric(),
+#     group = "Wild Population",
+#     size = plants_per_acre,
+#     resistance = numeric()
+#   )
+#   domesticated_population <- data.table(
+#     trait = numeric(),
+#     group = "Domesticated Population",
+#     size = plants_per_acre,
+#     resistance = numeric()
+#   )
+#   population <- rbind(wild_population, domesticated_population)
+#   population[, trait := pmax(0, pmin(1, trait))] # Ensure traits are within [0, 1]
+#   population[, resistance := trait]
+#   return(population)
+# }
+# population <- initialize_population()
+# 
+# 
+# 
+# 
+# # Initialize plant population
+# initialize_population <- function() {
+#   # Create wild population
+#   wild_population <- data.table(
+#     trait = rnorm(plants_per_acre, mean = 2/3, sd = 0.3),  # Gaussian distribution
+#     # growth_rate = NA,
+#     # reproduction_rate = NA,
+#     resistance = NA,
+#     size = plants_per_acre,
+#     group = "Wild Population"
+#   )
+#   
+#   # Ensure trait value within [0, 1] for wild population
+#   wild_population[trait < 0, trait := 0]
+#   wild_population[trait > 1, trait := 1]
+#   
+#   # Create domesticated population
+#   domesticated_population <- data.table(
+#     trait = rnorm(plants_per_acre, mean = 1/3, sd = 0.02),  # Narrow Gaussian distribution
+#     # growth_rate = NA,
+#     # reproduction_rate = NA,
+#     resistance = NA,
+#     size = plants_per_acre,
+#     group = "Domesticated Population"
+#   )
+#   
+#   # Ensure trait value within [0, 1] for domesticated population
+#   domesticated_population[trait < 0, trait := 0]
+#   domesticated_population[trait > 1, trait := 1]
+#   
+#   # Combine populations
+#   population <- rbind(wild_population, domesticated_population)
+#   
+#   # Initialize plant properties
+#   # population[, growth_rate := 1 - trait]
+#   # population[, reproduction_rate := 1 - trait]
+#   population[, resistance := trait]
+#   
+#   return(population)
+# }
+
 
 # mortality function ---------------------------------------------------------
 mortality <- function(population, max_temp, precip, pest_pressure) {
@@ -243,6 +346,44 @@ domesticated_trait_expression <- rnorm(domesticated_n_individuals, mean = 0.3, s
 
 
 
+
+
+
+# Function to sample trait values within [0, 1]
+resample_within_bounds <- function(n, mean, sd) {
+  valid_values <- numeric(0)  # Initialize an empty vector to store valid values
+  while (length(valid_values) < n) {
+    # Sample additional values
+    new_samples <- rnorm(n - length(valid_values), mean = mean, sd = sd)
+    # Keep only values within [0, 1]
+    valid_values <- c(valid_values, new_samples[new_samples >= 0 & new_samples <= 1])
+  }
+  return(valid_values)
+}
+
+# Initialize trait expression for wild and domesticated populations
+wild_trait_expression_year <- resample_within_bounds(wild_n_individuals, mean = wild_median, sd = wild_sd)
+summary(wild_trait_expression_year)
+
+domesticated_trait_expression_year <- resample_within_bounds(domesticated_n_individuals, mean = domesticated_median, sd = domesticated_sd)
+summary(domesticated_trait_expression_year)
+
+# Plot initial trait distributions
+hist(wild_trait_expression_year, main = 'Resampled Wild Trait Distribution')
+hist(domesticated_trait_expression_year, main = 'Resampled Domesticated Trait Distribution')
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Main simulation loop --------------------------------------------------------
 
 # set location
@@ -296,6 +437,31 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
     #                    '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode')
     
   
+      #       # Fit a linear model
+      #       wild_lm_model <- lm(CropBiomass ~ DayNumber, data = sunflo)
+      #       # Fit a piecewise linear model with 2 breakpoints
+      #       wild_seg_model <- segmented(lm_model, seg.Z = ~DayNumber, npsi=3)  # Initial guess for breakpoint at x=3
+      #       #  summary of segmented model
+      #       wild_line_summary <- summary(seg_model)
+      #       wild_growth_rate <- line_summary$coefficients[2,1]
+      
+      
+      
+      # # Fit a linear model
+      # domesticated_lm_model <- lm(CropBiomass ~ DayNumber, data = sunflo)
+      # 
+      # # Fit a piecewise linear model with 2 breakpoints
+      # domesticated_seg_model <- segmented(lm_model, seg.Z = ~DayNumber, npsi=3)  # Initial guess for breakpoint at x=3
+      # 
+      # # TODO check coeffient
+      # #  summary of segmented model
+      # domesticated_line_summary <- summary(seg_model)
+      # domesticated_growth_rate <- line_summary$coefficients[2,1]
+      
+      
+      
+      
+      
     
     # # Fit a linear model
     # lm_model <- lm(CropBiomass ~ DayNumber, data = sunflo)
@@ -333,6 +499,19 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
     wild_sunflo <- read_csv(files[get_closest_index(mean(population$trait[population$group=='Wild Population']))]) %>%
       mutate(DayNumber = row_number())     # add day by row number
     wild_plot_yield[plot] <- max(wild_sunflo$CropYield) * max(wild_mortality)
+    
+    
+    
+    
+    
+    
+    # dom_sunflo <- read_csv(files[get_closest_index(mean(population$trait[population$group=='Domesticated Population']))]) %>%
+    #   mutate(DayNumber = row_number())     # add day by row number
+    # dom_plot_yield[plot] <- max(dom_sunflo$CropYield) * max(domesticated_mortality)
+    # 
+    # wild_sunflo <- read_csv(files[get_closest_index(mean(population$trait[population$group=='Wild Population']))]) %>%
+    #   mutate(DayNumber = row_number())     # add day by row number
+    
     
     # TODO what are sunflo yeild units
     
@@ -402,6 +581,51 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
     #   yield = wild_yield
     # ))
     # 
+    # 
+    # domesticated_population <- rbind(domesticated_population, data.table(
+    #   year = year,
+    #   plot = plot,
+    #   n_survived = initial_domesticated, # Placeholder for number of survived plants
+    #   trait_mean = domesticated_trait_expression,
+    #   trait_sd = sd(domesticated_trait_expression), # Placeholder for standard deviation
+    #   yield = domesticated_yield
+    # ))
+    
+    # Append results to the tracking data.table
+    results <- rbind(results, data.table(
+      year = year,
+      plot = plot,
+      group = "Wild Population",
+      yield = wild_plot_yield,
+      avg_trait = mean(population$trait[population$group=='Wild Population']),
+      trait_variance = sd(population$trait[population$group=='Wild Population']),
+      upper_bound = wild_upper_bound,
+      lower_bound = wild_lower_bound
+    ))
+    results <- rbind(results, data.table(
+      year = year,
+      plot = plot,
+      group = "Domesticated Population",
+      yield = dom_plot_yield,
+      avg_trait = mean(population$trait[population$group=='Domesticated Population']),
+      trait_variance = sd(population$trait[population$group=='Domesticated Population']),
+      upper_bound = domesticated_upper_bound,
+      lower_bound = domesticated_lower_bound
+    ))
+    
+    
+    
+    
+    # new_wild_population_size <- plants_per_acre - wild_survived
+    # # store yield and trait expression
+    # wild_population <- rbind(wild_population, data.table(
+    #   year = year,
+    #   plot = plot,
+    #   n_survived = initial_wild, # Placeholder for number of survived plants
+    #   trait_mean = wild_trait_expression,
+    #   trait_sd = sd(wild_trait_expression), # Placeholder for standard deviation
+    #   yield = wild_yield
+    # ))
     # 
     # domesticated_population <- rbind(domesticated_population, data.table(
     #   year = year,
