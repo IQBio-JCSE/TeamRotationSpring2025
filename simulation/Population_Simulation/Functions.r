@@ -35,6 +35,15 @@ a = 0.0002) {
 
 # mortality function ---------------------------------------------------------
 
+# Mortality due to herbivory
+herbivory_mortality <- function(pest_pressure, resistance, gamma = 2) {
+  mortality <- pest_pressure * (1 - resistance)^gamma
+  return(mortality)
+}
+
+
+
+
 # plot(rep(1:10),exp(rep(10:1)))
 # plot(rep(1:10),(rep(1:10))^(-1/2))
 # plot(rep(1:10),(rep(1:10))*(-1/3/150))
@@ -99,8 +108,3 @@ a = 0.0002) {
 #   return(population)
 # }
 # 
-
-
-
-
-# distrubution of trait across time

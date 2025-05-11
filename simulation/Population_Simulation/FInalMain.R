@@ -9,6 +9,17 @@ library(tidyverse)
 # install.packages("segmented")  # Install if not already installed
 # library(segmented)
 
+
+# set run location & study period
+
+location <- "Georgia" # "Minnesota" "Georgia"# change location
+study_period <- 2 # 1, 2
+gamma <- 10 #5, 10, 20, 50,100
+
+# location <- c("Georgia","Minnesota") # "Minnesota" "Georgia"# change location
+# study_period <- c(1,2) # 1, 2
+# gamma <- c(5, 10, 20, 50,100)
+
 # Load functions --------------------------------------------------------
 source("simulation/Population_Simulation/Functions.r") # Load helper functions
 
@@ -31,7 +42,7 @@ set.seed(123)
 years <- length(unique(climate_data$Year[climate_data$StudyPeriod==2]))
 
 # number of plots of populations
-plots <- 4
+plots <- 10
 
 # patch of plants 7.0 plants per m^2 for a field plot of 5 acres
 # 5 acres = 20234.3 m^2
@@ -107,19 +118,19 @@ color_options <- c('#F4E9CB',"#F1DBA9","#F4E9CB","#F2D590",
 #   return(min(total_mortality, 1))  # cap at 100% mortality
 # }
 
-herbivory <- function(pest_pressure, trait_value){
-  base_mortality <- 1/3/nrow(climate_data_year)
-  herbivory <- pest_pressure * (1 - trait_value)
-  total_mortality <- base_mortality + herbivory
-  return(min(total_mortality, 1))  # cap at 100% mortality
-}
-
-mortality_function <- function(max_temp, precip, pest_pressure, secondary_metabolite, is_domesticated = FALSE) {
-  climate_stress <- (max_temp> 30) + (precip < 300)
-  herbivory <- pest_pressure * (if (is_domesticated) 1.2 else 0.8) * (1 - secondary_metabolite)
-  return(1/3/nrow(climate_data_year) + 0.1 * climate_stress + herbivory)
-
-}
+# herbivory <- function(pest_pressure, trait_value){
+#   base_mortality <- 1/3/nrow(climate_data_year)
+#   herbivory <- pest_pressure * (1 - trait_value)
+#   total_mortality <- base_mortality + herbivory
+#   return(min(total_mortality, 1))  # cap at 100% mortality
+# }
+# 
+# mortality_function <- function(max_temp, precip, pest_pressure, secondary_metabolite, is_domesticated = FALSE) {
+#   climate_stress <- (max_temp> 30) + (precip < 300)
+#   herbivory <- pest_pressure * (if (is_domesticated) 1.2 else 0.8) * (1 - secondary_metabolite)
+#   return(1/3/nrow(climate_data_year) + 0.1 * climate_stress + herbivory)
+# 
+# }
 
 
 
@@ -185,10 +196,6 @@ hist(domesticated_trait_expression_year, main = 'Bounded [0,1] Domesticated Trai
 
 
 # Main simulation loop --------------------------------------------------------
-
-# set location
-location <- "Georgia" # "Minnesota" "Georgia"# change location
-study_period <- 2 # 1, 2
 
 # Loop through each year
 for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each year in climate data
@@ -268,11 +275,18 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
     wild_sunflo <- run_sunflo(climate_data_year,
                               wild_trait_mean_expression, # wild_trait_expression or domesticated_trait_expression
                               '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode')%>%
-      mutate(GrowingSeasonDay = row_number())
+      mutate(GrowingSeasonDay = row_number(),
+             DailyYield = c(CropYield[1], diff(CropYield)))
+
+    # Apply herbivory_mortality function to each pest pressure value
+    wild_herbivory_mortality <- sapply(pest_pressure, function(p) {
+      herbivory_mortality(pest_pressure = p, resistance = wild_trait_mean_expression, gamma = gamma)
+    })
+    # TODO add mortality effect to yield
     
     wild_plot_yield <- max(wild_sunflo$CropYield)
-    
-    wild_plot_yield_vector[plot] <- wild_plot_yield # Placeholder for yield values for each plot 
+    wild_plot_yield_with_pest <- sum(wild_herbivory_mortality * wild_sunflo$DailyYield)
+    wild_plot_yield_vector[plot] <- wild_plot_yield_with_pest # Placeholder for yield values for each plot 
     
     # TODO sunflo yeild units
     # 1 q.ha⁻¹ = 100 kg/ha
@@ -306,9 +320,18 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
     domesticated_sunflo <- run_sunflo(climate_data_year,
                                       domesticated_trait_mean_expression, # wild_trait_expression or domesticated_trait_expression
                                       '/Users/sestockman/Library/CloudStorage/OneDrive-UCB-O365/Courses/MAS/Rotation4/TeamRotationSpring2025/sunflo_recode') %>%
-      mutate(GrowingSeasonDay = row_number())
+      mutate(GrowingSeasonDay = row_number(),
+             DailyYield = c(CropYield[1], diff(CropYield)))
+    
+    # Apply herbivory_mortality function to each pest pressure value
+    domesticated_herbivory_mortality <- sapply(pest_pressure, function(p) {
+      herbivory_mortality(pest_pressure = p, resistance = domesticated_trait_mean_expression, gamma = gamma)
+    })
+    
     domesticated_plot_yield <- max(domesticated_sunflo$CropYield)
-    domesticated_plot_yield_vector[plot] <- wild_plot_yield 
+    domesticated_plot_yield_with_pest <- sum(domesticated_herbivory_mortality * domesticated_sunflo$DailyYield)
+    
+    domesticated_plot_yield_vector[plot] <- domesticated_plot_yield_with_pest 
 
     # Open PNG device
     # png(sprintf("simulation/results/Yield_%s_Domesticated_%d_plot%d.png",
@@ -330,20 +353,20 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
     #  pointsize = 5,
     #  compression = 'none')
     # 
-    # plot(domesticated_sunflo$GrowingSeasonDay, domesticated_sunflo$CropYield,
+    # plot(domesticated_sunflo$GrowingSeasonDay, domesticated_sunflo$DailyYield, # CropYield
     #      pch = 20,
     #      size = .5,
-    #     
+    # 
     #      col = "#814627",
     #      # ylab = expression("Grain Yield" ~ (q.ha^-1)),
     #      ylab = expression("Grain Yield (q/ha)"),
     #      # ylab = expression("Grain Yield (quintals per hectare)"),
-    #      xlab = 'Day of Growing Season', 
-    #      main = sprintf('Domesticated Yield:%g, Year: %d, Plot: %d, Trait: %g', 
+    #      xlab = 'Day of Growing Season',
+    #      main = sprintf('Domesticated Yield:%g, Year: %d, Plot: %d, Trait: %g',
     #                     round(max(domesticated_sunflo$CropYield), digits = 2),
-    #                     unique(climate_data$Year)[year], 
-    #                     plot, 
-    #                     round(domesticated_trait_mean_expression, digits = 3))) 
+    #                     unique(climate_data$Year)[year],
+    #                     plot,
+    #                     round(domesticated_trait_mean_expression, digits = 3)))
     # dev.off() 
     
     
@@ -387,7 +410,7 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
         year = unique(climate_data$Year[climate_data$StudyPeriod==study_period])[year],
         plot = plot,
         group = "Wild Population",
-        yield = wild_plot_yield,
+        yield = wild_plot_yield_with_pest,
         trait_mean = wild_trait_mean_expression,
         trait_sd = wild_trait_sd_plot,
         upper_bound = wild_trait_mean_expression+wild_trait_sd_plot,
@@ -398,7 +421,7 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
         year = unique(climate_data$Year[climate_data$StudyPeriod==study_period])[year],
         plot = plot,
         group = "Domesticated Population",
-        yield = domesticated_plot_yield,
+        yield = domesticated_plot_yield_with_pest,
         trait_mean = domesticated_trait_mean_expression,
         trait_sd = domesticated_trait_sd_plot,
         upper_bound = domesticated_trait_mean_expression+domesticated_trait_sd_plot,
@@ -468,28 +491,34 @@ for (year in 1:years) { # TODO: length(unique(climate_data$year)) # for each yea
 
 # Plot results
 results_graph <- ggplot(results, aes(x = year)) +
-  geom_line(aes(y = yield, color = group), linewidth = .5, alpha = .8) +
-  geom_line(aes(y = trait_mean * max(results$yield) / max(results$trait_mean), color = group, linetype = group)) +
+  geom_line(aes(y = yield, color = group), linewidth = 1.2, alpha = .8) +
+  geom_line(aes(y = trait_mean * max(results$yield) / max(results$trait_mean), color = group), linewidth = 1.2, alpha =.8, linetype = "dashed") +
   geom_ribbon(aes(ymin = lower_bound * max(results$yield) / max(results$trait_mean),
                   ymax = upper_bound * max(results$yield) / max(results$trait_mean),
                   fill = group), alpha = 0.1) +
   scale_y_continuous(
     name = "Yield Per Acre",
     sec.axis = sec_axis(~ . * max(results$trait_mean) / max(results$yield),
-                        name = "Secondary Metabolite Expression [0-1]")
+                        name = "Terpenoid Trait Expression [0-1]")
   ) +
-  scale_color_manual(values = c("Wild Population" = "#27582b", "Domesticated Population" = "#59466a")) +
-  scale_fill_manual(values = c("Wild Population" = "#27582b", "Domesticated Population" = "#59466a")) +
+  scale_x_continuous(
+    breaks = unique(results$year),  # Ensure only whole years are shown
+    name = "Years") +
+  scale_color_manual(values = c("Wild Population" = "dodgerblue3", "Domesticated Population" = "firebrick3")) +
+  scale_fill_manual(values = c("Wild Population" = "dodgerblue3", "Domesticated Population" = "firebrick3")) +
 labs(
   title = sprintf("%s Yield for Years %d-%d", 
                   location,
                   min(results$year),
                   max(results$year)),
   x = "Years",
-  color = "Group",
-  fill = "Group"
+  color = "Yield (q/ha)",
+  fill = "Terpenoid Trait Expression"
 ) +
-theme_minimal()
+theme_minimal() +
+  theme(
+    panel.grid.minor = element_blank()  # Remove minor grid lines
+  )
 
 results_graph
   
@@ -498,4 +527,4 @@ ggsave(sprintf("Yield_Trait_%s_StudyPeriod%d.png",
                location,
                study_period),
        plot = results_graph, path = 'simulation/results',
-       width = 6, height = 6, dpi = 300)
+       width = 10, height = 6, dpi = 300)

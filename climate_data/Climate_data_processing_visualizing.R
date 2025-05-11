@@ -9,9 +9,17 @@
 
 georgia_climate_p1 <- read.csv("climate_data/Georgia_clean_90_00.csv")%>%
   mutate(StudyPeriod = 1)
+summary(georgia_climate_p1$PRCP)[4]
+summary(georgia_climate_p1$TMAX)[4]
+summary(georgia_climate_p1$TMIN)[4]
+summary((georgia_climate_p1$TMAX - georgia_climate_p1$TMIN)/2)[4]
 
 georgia_climate_p2 <- read.csv("climate_data/Georgia_clean_14_24.csv")%>%
   mutate(StudyPeriod = 2)
+summary(georgia_climate_p2$PRCP)[4]
+summary(georgia_climate_p2$TMAX)[4]
+summary(georgia_climate_p2$TMIN)[4]
+summary((georgia_climate_p2$TMAX - georgia_climate_p2$TMIN)/2)[4]
 
 which(is.na(georgia_climate_p2$TMAX))
 
@@ -23,13 +31,36 @@ georgia_climate_p2$TMAX[3121] <- round(32.76667 *10, 0)
 georgia_climate_p2$TMAX[3122] <- round(32.23334 * 10, 1)
 georgia_climate_p2$TMAX[3125] <- 32.5 *10
 
+(summary(georgia_climate_p2$TMAX)[4]-
+  summary(georgia_climate_p1$TMAX)[4])/
+  summary(georgia_climate_p1$TMAX)[4]
 
+(summary(georgia_climate_p2$PRCP)[4]-
+    summary(georgia_climate_p1$PRCP)[4])/
+  summary(georgia_climate_p1$PRCP)[4]
 
 
 minnesota_climate_p1 <- read.csv("climate_data/Minnesota_clean_90_00.csv")%>%
   mutate(StudyPeriod = 1)
+summary(minnesota_climate_p1$PRCP)[4]
+summary(minnesota_climate_p1$TMAX)[4]
+summary(minnesota_climate_p1$TMIN)[4]
+summary((minnesota_climate_p1$TMAX - minnesota_climate_p1$TMIN)/2)[4]
+
 minnesota_climate_p2 <- read.csv("climate_data/Minnesota_clean_14_24.csv")%>%
   mutate(StudyPeriod = 2)
+
+summary(minnesota_climate_p2$PRCP)[4]
+summary(minnesota_climate_p2$TMAX)[4]
+summary(minnesota_climate_p2$TMIN)[4]
+summary((minnesota_climate_p2$TMAX - minnesota_climate_p2$TMIN)/2)[4]
+
+(summary(minnesota_climate_p2$TMAX)[4]-summary(minnesota_climate_p1$TMAX)[4]
+)/summary(minnesota_climate_p1$TMAX)[4]
+
+(summary(minnesota_climate_p2$PRCP)[4]-summary(minnesota_climate_p1$PRCP)[4]
+)/summary(minnesota_climate_p1$PRCP)[4]
+
 
 # minnesota_climate_p3 <- read.csv("climate_data/Minnesota_clean_98_23.csv")
 
@@ -59,6 +90,8 @@ climate_data <- rbind(georgia_climate,minnesota_climate) %>%
 # export climate data as csv
 write.csv(climate_data, "climate_data/Climate_data.csv")
 
+
+climate_data <- read.csv("climate_data/Climate_data.csv")
 
 
 
@@ -94,13 +127,14 @@ par(mar = c(5, 4, 4, 4) + 0.1)  # Adjust margins to make space for the right y-a
 #      main = sprintf("Climate for year: %d", unique(climate_data$Year)[year]))
 # 
 # Plot precipitation (PRCP) on the left y-axis
-plot(climate_data_year$PRCP, 
+plot(climate_data$PRCP[climate_data$Location == location], 
      type = "l",
      col = '#5B9DD9',  # Line color for precipitation
-     ylim = c(0,900),  # Set y-axis limits for the left axis
+     ylim = c(0,2000),  # Set y-axis limits for the left axis
      ylab = "",  # Suppress default y-axis label
-     xlab = "Day of Growing Season", 
-     main = sprintf("Climate for year: %d", unique(climate_data$Year)[year]))
+     xlab = "Year", 
+     xaxt = "n",  # Suppress default x-axis
+     main = sprintf("%s", location))
 
 # Add custom y-axis label and color for the left axis
 mtext("Daily Precipitation (mm)", side = 2, line = 3, col = '#5B9DD9')  # Left y-axis label
@@ -109,34 +143,25 @@ axis(side = 2, col.axis = '#5B9DD9')  # Left y-axis numbers in blue
 
 # Add temperature (Temp_mean) on the right y-axis
 par(new = TRUE)  # Overlay a new plot on the same graph
-plot(climate_data_year$Temp_mean, 
+plot(climate_data$Temp_mean[climate_data$Location == location], 
      type = "l",
      col = '#C84B1B',
      axes = FALSE,  # Suppress axes for this plot
      xlab = "",  # Suppress x-axis label
      ylab = "",  # Suppress y-axis label
-     ylim = c(-5,max(climate_data_year$Temp_mean))
+     ylim = c(-20,max(climate_data$Temp_mean))
 )
 
 # Add the right y-axis
 axis(side = 4, col.axis = '#C84B1B',)  # Add the right y-axis
 mtext("Temperature (°C)", side = 4, line = 3, col = '#C84B1B')  # Label for the right y-axis
 
+# Add custom x-axis with ticks every 150 days
+x_ticks <- seq(1, nrow(climate_data[climate_data$Location == location,]), by = 150)  # Define tick positions
+axis(side = 1, at = x_ticks, labels = unique(climate_data$Year), las = 2)  # Add custom x-axis ticks
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Add a vertical line in the middle
+abline(v = x_ticks[12]-1, col = "black", lty = 2, lwd = 2)  # Add a dashed vertical line
 
 
 
