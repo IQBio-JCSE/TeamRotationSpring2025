@@ -1,0 +1,4 @@
+Note that SUNFLO was re-written in R. The original publication and more information about the software can be found here: https://www.quantitative-plant.org/model/SUNFLO . Additionally, the documentation in the rsunflo Github repo (https://github.com/picasa/rsunflo) was heavily reference in the re-coding process.
+
+Additional remarks on the implementation of SUNFLO here:
+There were a few key differences between the original SUNFLO model and the present implementation. First, the original version of SUNFLO allows for simultaneous calculations of variables which depend on one another for the same time point. To simplify this in the present implementation, the value for the previous time point was used instead of the current value. Additionally, the original SUNFLO model uses multiple layers of soil when considering water and nitrogen content in the soil, but the re-coded version treats all soil layers available to the plant as equivalent.
